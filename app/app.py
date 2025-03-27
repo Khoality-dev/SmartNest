@@ -19,11 +19,29 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'mp3'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB limit
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 16MB limit
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/upload', methods=['POST'])
+def upload_chunk():
+    chunk = request.files['chunk']
+    chunk_number = request.form['chunk_number']
+    total_chunks = request.form['total_chunks']
+    
+    # Save chunk to temporary location
+    temp_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'temp')
+    os.makedirs(temp_dir, exist_ok=True)
+    chunk.save(os.path.join(temp_dir, f'chunk-{chunk_number}'))
+    
+    if int(chunk_number) == int(total_chunks) - 1:
+        # Reassemble file when all chunks are received
+        reassemble_file(temp_dir)
+        return jsonify({'status': 'complete'})
+    
+    return jsonify({'status': 'chunk received'})
 
 @app.route('/play', methods=['POST'])
 def play():

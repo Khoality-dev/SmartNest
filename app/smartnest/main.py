@@ -9,7 +9,7 @@ def list_all_devices():
     for i in range(p.get_device_count()):
         device_info = p.get_device_info_by_index(i)
         #if "USB" in device_info['name']:
-        avaliable_devices.append(device_info['name'])
+        avaliable_devices.append({'name':device_info['name'], 'index': i})
     return avaliable_devices
 
 def stop(device_index):
@@ -19,7 +19,7 @@ def stop(device_index):
         device[playing_thread].join()
         devices.pop(device_index)
 
-def play_audio(device_index, file_path):
+def play_audio(device_index, file_path, looping = False):
     if device_index not in devices:
         device_info = p.get_device_info_by_index(device_index)
         devices[device_index] = {
@@ -27,10 +27,12 @@ def play_audio(device_index, file_path):
             "channels": int(device_info["maxOutputChannels"]),
             "device_index": device_index,
             "playing_thread": None,
-            "is_playing": False
+            "is_playing": False,
+            "looping": False,
         }
 
     device = devices[device_index]
+    device["looping"] = looping
     audio_segment = pydub.AudioSegment.from_file(file_path, format="mp3")
     audio_data = audio_segment.set_frame_rate(device["sample_rate"]).raw_data
 
@@ -44,17 +46,22 @@ def play_audio(device_index, file_path):
         )
 
         chunk_size = 1024  # Number of frames per buffer
-        index = 0
 
-        while index < len(raw_audio):
-            if not device["is_playing"]:  # Check the stop flag
-                print("Stopping playback...")
+        while True:
+            index = 0
+
+            while index < len(raw_audio):
+                if not device["is_playing"]:  # Check the stop flag
+                    print("Stopping playback...")
+                    break
+
+                # Write a chunk of audio data to the stream
+                chunk = raw_audio[index:index + chunk_size]
+                stream.write(chunk)
+                index += chunk_size
+
+            if not device["looping"]:
                 break
-
-            # Write a chunk of audio data to the stream
-            chunk = raw_audio[index:index + chunk_size]
-            stream.write(chunk)
-            index += chunk_size
 
         # Clean up
         stream.stop_stream()
@@ -65,5 +72,5 @@ def play_audio(device_index, file_path):
         device["playing_thread"].join()
 
     device["is_playing"] = True
-    device["playing_thread"] = threading.Thread(target=play_audio_thread, args=(device, audio_data, device["sample_rate"], audio_segment.sample_width, device["channels"], device["device_index"]))
+    device["playing_thread"] = threading.Thread(target=play_audio_thread, args=(device, audio_data, device["sample_rate"], audio_segment.sample_width, audio_segment.channels, device["device_index"]))
     device["playing_thread"].start() 
