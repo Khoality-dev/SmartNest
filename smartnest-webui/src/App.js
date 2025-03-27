@@ -8,7 +8,7 @@ function App() {
   const fetchDevices = async () => {
 
     try {         // File field
-      const response = await axios.get('http://localhost:5000/list-devices', {
+      const response = await axios.get('http://192.168.1.10:5000/list-devices', {
 
       });
       console.log('Response:', response.data.devices);

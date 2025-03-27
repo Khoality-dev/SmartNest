@@ -14,7 +14,7 @@ function DeviceCard({ deviceId, deviceName }) {
       formData.append('device_id', deviceId);  // Text field
       formData.append('file', selectedFile);           // File field
       console.log('device_name', deviceName)
-      const response = await axios.post('http://localhost:5000/play', formData, {
+      const response = await axios.post('http://192.168.1.10:5000/play', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },

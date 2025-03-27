@@ -3,13 +3,15 @@ import pydub
 import threading
 
 devices = {}
+p = pyaudio.PyAudio().terminate()
 p = pyaudio.PyAudio()
+
 def list_all_devices():
     avaliable_devices = []
     for i in range(p.get_device_count()):
         device_info = p.get_device_info_by_index(i)
         if "USB" in device_info['name']:
-            avaliable_devices.append({'device_name':device_info['name'], 'device_id': i})
+            avaliable_devices.append({'device_name':device_info['name'], 'device_id': i, 'num_channels': device_info['maxInputChannels']})
     return avaliable_devices
 
 def stop(device_index):
