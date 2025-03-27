@@ -47,7 +47,7 @@ def play_audio(device_index, file_path):
         index = 0
 
         while index < len(raw_audio):
-            if not device["playing_thread"]:  # Check the stop flag
+            if not device["is_playing"]:  # Check the stop flag
                 print("Stopping playback...")
                 break
 
