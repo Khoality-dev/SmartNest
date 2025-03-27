@@ -49,8 +49,6 @@ def play():
     if device_id is None:
         return {"success": False, "error": "Invalid request"}
     
-    print(request.files.keys())
-
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     

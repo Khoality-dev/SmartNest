@@ -8,8 +8,8 @@ def list_all_devices():
     avaliable_devices = []
     for i in range(p.get_device_count()):
         device_info = p.get_device_info_by_index(i)
-        #if "USB" in device_info['name']:
-        avaliable_devices.append({'name':device_info['name'], 'index': i})
+        if "USB" in device_info['name']:
+            avaliable_devices.append({'device_name':device_info['name'], 'device_id': i})
     return avaliable_devices
 
 def stop(device_index):

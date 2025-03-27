@@ -1,11 +1,13 @@
-FROM node:22.14.0
+FROM node:18-alpine
 
 RUN apt-get update && apt-get install -y \
     git
 
 RUN mkdir /app
 WORKDIR /app
-ADD ./smartnest-webui/* /app/
+ADD . /app/
+RUN npm install
 
+#ENTRYPOINT [ "/bin/bash" ]
 ENTRYPOINT [ "npm" ]
 CMD [ "start" ]
