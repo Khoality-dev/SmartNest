@@ -16,9 +16,10 @@ for i in range(p.get_device_count()):
                 "playing_thread": None,
                 "is_playing": False,
                 "status": "Idle",
-                "looping": False,
+                "looping": True,
                 "duration": 0, 
                 "position": 0,
+                "volume": 100,
                 "file_name": "",
             }
             
@@ -53,12 +54,16 @@ def get_device_info(device_id):
             "position": device["position"],
             "looping": device["looping"],
             "file_name": device["file_name"],
+            "volume": device["volume"]
         }
 
-def update_device_info(device_id, looping):
+def config_device(device_id, configs):
     if device_id in devices:
         device = devices[device_id]
-        device["looping"] = looping
+        if 'loop' in configs:
+            device["looping"] = configs['loop']
+        if 'volume' in configs:
+            device["volume"] = min(max(configs['volume'],0), 100)
 
 
 def play_audio(device_index, file_path, looping = False):
@@ -71,8 +76,7 @@ def play_audio(device_index, file_path, looping = False):
     audio_segment = pydub.AudioSegment.from_file(file_path, format="mp3")
     audio_data = audio_segment.set_frame_rate(device["sample_rate"])
     device["duration"] = int(len(audio_data) / 1000)
-    audio_data = audio_data.raw_data
-    def play_audio_thread(device, raw_audio, sample_rate, sample_width, channels, device_index):
+    def play_audio_thread(device, audio_data, sample_rate, sample_width, channels, device_index):
         stream = p.open(
             format=p.get_format_from_width(sample_width),
             channels=channels,
@@ -82,20 +86,29 @@ def play_audio(device_index, file_path, looping = False):
         )
         device['status'] = "Playing"
         chunk_size = 1024  # Number of frames per buffer
-
+        current_volume = -1
+        amplified_audio_data = audio_data
+        raw_data = amplified_audio_data.raw_data
         while True:
             index = 0
-
-            while index < len(raw_audio):
+            
+            while index < len(raw_data):
                 if not device["is_playing"]:  # Check the stop flag
                     print("Stopping playback...")
                     break
+                
+                if device['volume'] != current_volume:
+                    volume_db = volume_db = -60 * (1 - device['volume'] /100)
+                    amplified_audio_data = audio_data.apply_gain(volume_db)
+                    raw_data = amplified_audio_data.raw_data
+                    current_volume = device['volume']
 
                 # Write a chunk of audio data to the stream
-                chunk = raw_audio[index:index + chunk_size]
+                chunk = raw_data[index:index + chunk_size]
+                # apply new volume 
                 stream.write(chunk)
                 index += chunk_size
-                device['position'] = int((index / len(raw_audio)) * device['duration'])
+                device['position'] = int((index / len(raw_data)) * device['duration'])
 
             if not device["looping"]:
                 break

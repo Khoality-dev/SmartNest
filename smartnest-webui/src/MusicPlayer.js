@@ -75,6 +75,7 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
   const [fileName, setFileName] = React.useState('');
   const [duration, setDuration] = React.useState(0);
   const [loop, setLoop] = React.useState(false);
+  const [volume, setVolume] = React.useState(100);
   function formatDuration(value: number) {
     const minute = Math.floor(value / 60);
     const secondLeft = value - minute * 60;
@@ -94,6 +95,7 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
       setPosition(response.data.position);
       setPaused(response.data.status == "Playing" ? false : true);
       setLoop(response.data.looping);
+      setVolume(response.data.volume);
     } catch (error) {
       console.error(error);
     }
@@ -105,9 +107,24 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
       const formData = new FormData();
       formData.append('device_id', deviceId);  // Text field
       formData.append('loop', !loop);         
-      const response = await axios.post('http://192.168.1.10:5000/set-loop', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      const response = await axios.post('http://192.168.1.10:5000/config-device', {
+        "device_id": deviceId,
+        "configs": {
+          "loop": !loop
+        }
+      });
+      console.log('Response:', response.data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const VolumeChangeHandler = async(event, newValue) => {
+    try {         
+      const response = await axios.post('http://192.168.1.10:5000/config-device', {
+        "device_id": deviceId,
+        "configs": {
+          "volume": newValue
         }
       });
       console.log('Response:', response.data);
@@ -243,6 +260,8 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
           <Slider
             aria-label="Volume"
             defaultValue={30}
+            value={volume}
+            onChange={VolumeChangeHandler}
             sx={(t) => ({
               color: 'rgba(0,0,0,0.87)',
               '& .MuiSlider-track': {

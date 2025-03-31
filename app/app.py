@@ -57,15 +57,14 @@ def get_device_infos():
     device_id = int(request.args.get('device_id'))
     return jsonify(get_device_info(device_id))
 
-@app.route('/set-loop', methods=['POST'])
-def set_loop():
-    device_id = int(request.form['device_id'])
-    
-    if device_id is None or 'loop' not in request.form:
+@app.route('/config-device', methods=['POST'])
+def config_devices():
+    device_id = request.json['device_id']
+    configs = request.json['configs']
+    if device_id is None:
         return {"success": False, "error": "Invalid request"}
 
-    loop = True if request.form['loop'] == 'true' else False
-    update_device_info(device_id, loop)
+    config_device(device_id, configs)
     return {"success": True}
 
 if __name__ == '__main__':
