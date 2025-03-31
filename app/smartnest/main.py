@@ -6,6 +6,22 @@ devices = {}
 p = pyaudio.PyAudio().terminate()
 p = pyaudio.PyAudio()
 
+for i in range(p.get_device_count()):
+        device_info = p.get_device_info_by_index(i)
+        if "USB" in device_info['name']:
+            devices[i] = {
+                "sample_rate": int(device_info["defaultSampleRate"]),
+                "channels": int(device_info["maxOutputChannels"]),
+                "device_index": i,
+                "playing_thread": None,
+                "is_playing": False,
+                "status": "Idle",
+                "looping": False,
+                "duration": 0, 
+                "position": 0,
+                "file_name": "",
+            }
+            
 def list_all_devices():
     avaliable_devices = []
     for i in range(p.get_device_count()):
@@ -44,31 +60,12 @@ def update_device_info(device_id, looping):
         device = devices[device_id]
         device["looping"] = looping
 
-def stop(device_id):
-    if device_id in devices:
-        device = devices[device_id]
-        device["is_playing"] = False
-        device["playing_thread"].join()
-        devices.pop(device_id)
 
 def play_audio(device_index, file_path, looping = False):
     if device_index not in devices:
-        device_info = p.get_device_info_by_index(device_index)
-        devices[device_index] = {
-            "sample_rate": int(device_info["defaultSampleRate"]),
-            "channels": int(device_info["maxOutputChannels"]),
-            "device_index": device_index,
-            "playing_thread": None,
-            "is_playing": False,
-            "status": "Idle",
-            "looping": False,
-            "duration": 0, 
-            "position": 0,
-            "file_name": "",
-        }
+        return None
 
     device = devices[device_index]
-    device["looping"] = looping
     device["file_name"] = file_path.split("/")[-1]
     
     audio_segment = pydub.AudioSegment.from_file(file_path, format="mp3")

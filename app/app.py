@@ -1,4 +1,4 @@
-from smartnest.main import list_all_devices, play_audio, get_device_infos, get_device_info
+from smartnest.main import *
 import os
 # app.py
 from flask import Flask, render_template, request, redirect, url_for,jsonify
@@ -60,9 +60,11 @@ def get_device_infos():
 @app.route('/set-loop', methods=['POST'])
 def set_loop():
     device_id = int(request.form['device_id'])
-    loop = int(request.form['loop'])
-    if device_id is None or loop is None:
+    
+    if device_id is None or 'loop' not in request.form:
         return {"success": False, "error": "Invalid request"}
+
+    loop = True if request.form['loop'] == 'true' else False
     update_device_info(device_id, loop)
     return {"success": True}
 

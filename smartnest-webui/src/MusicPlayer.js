@@ -12,6 +12,8 @@ import FastForwardRounded from '@mui/icons-material/FastForwardRounded';
 import FastRewindRounded from '@mui/icons-material/FastRewindRounded';
 import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
 import VolumeDownRounded from '@mui/icons-material/VolumeDownRounded';
+import RepeatIcon from '@mui/icons-material/Repeat';
+import RepeatOnIcon from '@mui/icons-material/RepeatOn';
 import axios from 'axios';
 const WallPaper = styled('div')({
   position: 'absolute',
@@ -72,6 +74,7 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
   const [paused, setPaused] = React.useState(true);
   const [fileName, setFileName] = React.useState('');
   const [duration, setDuration] = React.useState(0);
+  const [loop, setLoop] = React.useState(false);
   function formatDuration(value: number) {
     const minute = Math.floor(value / 60);
     const secondLeft = value - minute * 60;
@@ -90,6 +93,24 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
       setDuration(response.data.duration);
       setPosition(response.data.position);
       setPaused(response.data.status == "Playing" ? false : true);
+      setLoop(response.data.looping);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const RepeatOnClickHandler = async() => {
+    try {         
+      console.log("Looping:", loop);
+      const formData = new FormData();
+      formData.append('device_id', deviceId);  // Text field
+      formData.append('loop', !loop);         
+      const response = await axios.post('http://192.168.1.10:5000/set-loop', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      console.log('Response:', response.data);
     } catch (error) {
       console.error(error);
     }
@@ -198,6 +219,9 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
           </IconButton>
           <IconButton aria-label="next song">
             <FastForwardRounded fontSize="large" />
+          </IconButton>
+          <IconButton aria-label="loop" onClick={RepeatOnClickHandler}>
+            {((loop) ? <RepeatOnIcon/> : <RepeatIcon/>)}
           </IconButton>
         </Box>
         <Stack
