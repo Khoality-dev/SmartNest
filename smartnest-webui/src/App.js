@@ -3,12 +3,13 @@ import DeviceCard from './DeviceCard';
 import axios from 'axios';
 import { Stack } from '@mui/material';
 import { useState } from 'react';
+import { API_URL} from './configs'
 function App() {
   const [deviceList, setDeviceList] = useState([]);
   const fetchDevices = async () => {
 
     try {         // File field
-      const response = await axios.get('http://192.168.1.10:5000/list-devices', {
+      const response = await axios.get( API_URL + '/list-devices', {
 
       });
       console.log('Response:', response.data.devices);

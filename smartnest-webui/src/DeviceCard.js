@@ -8,6 +8,7 @@ import MusicPlayerSlider from './MusicPlayer';
 import Box from '@mui/material/Box';
 import SpeakerIcon from '@mui/icons-material/Speaker';
 import { styled } from '@mui/material/styles';
+import { API_URL } from './configs';
 
 function DeviceCard({ deviceId, deviceName }) {
   const [uploadProgress, setUploadProgress] = React.useState(0);
@@ -18,7 +19,7 @@ function DeviceCard({ deviceId, deviceName }) {
       formData.append('device_id', deviceId);  // Text field
       formData.append('file', selectedFile);           // File field
       console.log('device_name', deviceName)
-      const response = await axios.post('http://192.168.1.10:5000/play', formData, {
+      const response = await axios.post(API_URL + '/play', formData, {
         headers: {  
           'Content-Type': 'multipart/form-data'
         },

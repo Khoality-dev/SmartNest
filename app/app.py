@@ -4,6 +4,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for,jsonify
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
+import ssl
 app = Flask(__name__)
 CORS(app)
 
@@ -68,4 +69,4 @@ def config_devices():
     return {"success": True}
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(ssl_context=('../secrets/forever.crt', '../secrets/forever.key'), host='0.0.0.0', port=5000, debug=True)

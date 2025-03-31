@@ -15,6 +15,7 @@ import VolumeDownRounded from '@mui/icons-material/VolumeDownRounded';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import RepeatOnIcon from '@mui/icons-material/RepeatOn';
 import axios from 'axios';
+import { API_URL } from './configs';
 const WallPaper = styled('div')({
   position: 'absolute',
   width: '100%',
@@ -84,7 +85,7 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
   const getDeviceInfo = async () =>
   {
     try {         
-      const response = await axios.get('http://192.168.1.10:5000/get-device-infos', {
+      const response = await axios.get(API_URL + '/get-device-infos', {
         params : {
           "device_id": deviceId
         }
@@ -107,7 +108,7 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
       const formData = new FormData();
       formData.append('device_id', deviceId);  // Text field
       formData.append('loop', !loop);         
-      const response = await axios.post('http://192.168.1.10:5000/config-device', {
+      const response = await axios.post(API_URL + '/config-device', {
         "device_id": deviceId,
         "configs": {
           "loop": !loop
@@ -121,7 +122,7 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
 
   const VolumeChangeHandler = async(event, newValue) => {
     try {         
-      const response = await axios.post('http://192.168.1.10:5000/config-device', {
+      const response = await axios.post(API_URL + '/config-device', {
         "device_id": deviceId,
         "configs": {
           "volume": newValue
