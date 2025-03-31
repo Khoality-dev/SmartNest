@@ -1,4 +1,4 @@
-from smartnest.main import list_all_devices, play_audio
+from smartnest.main import list_all_devices, play_audio, get_device_infos, get_device_info
 import os
 # app.py
 from flask import Flask, render_template, request, redirect, url_for,jsonify
@@ -25,23 +25,6 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/upload', methods=['POST'])
-def upload_chunk():
-    chunk = request.files['chunk']
-    chunk_number = request.form['chunk_number']
-    total_chunks = request.form['total_chunks']
-    
-    # Save chunk to temporary location
-    temp_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'temp')
-    os.makedirs(temp_dir, exist_ok=True)
-    chunk.save(os.path.join(temp_dir, f'chunk-{chunk_number}'))
-    
-    if int(chunk_number) == int(total_chunks) - 1:
-        # Reassemble file when all chunks are received
-        reassemble_file(temp_dir)
-        return jsonify({'status': 'complete'})
-    
-    return jsonify({'status': 'chunk received'})
 
 @app.route('/play', methods=['POST'])
 def play():
@@ -66,6 +49,22 @@ def play():
 
     return {"success": True}
 
+@app.route('/get-device-infos', methods=['GET'])
+def get_device_infos():
+    if 'device_id' not in request.args:
+        return jsonify({"device_infos": get_device_infos()})
+
+    device_id = int(request.args.get('device_id'))
+    return jsonify(get_device_info(device_id))
+
+@app.route('/set-loop', methods=['POST'])
+def set_loop():
+    device_id = int(request.form['device_id'])
+    loop = int(request.form['loop'])
+    if device_id is None or loop is None:
+        return {"success": False, "error": "Invalid request"}
+    update_device_info(device_id, loop)
+    return {"success": True}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

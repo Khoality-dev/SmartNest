@@ -18,13 +18,9 @@ function App() {
     }
   }
   
-  useEffect(() => {
+  if (deviceList.length === 0) {
     fetchDevices();
-    const interval = setInterval(fetchDevices, 10000);
-    
-    // Clean up interval when component unmounts
-    return () => clearInterval(interval);
-  }, []);
+  }
 
   return (
     <Stack spacing={2} direction="column">
