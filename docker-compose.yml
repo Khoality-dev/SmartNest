@@ -19,12 +19,7 @@ services:
     build:
       context: ./smartnest-webui/
       dockerfile: Dockerfile
-    volumes:
-      - ./smartnest-webui:/app
     ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
       - "3000:3000"
 
 networks:
