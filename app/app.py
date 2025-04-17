@@ -69,4 +69,4 @@ def config_devices():
     return {"success": True}
 
 if __name__ == '__main__':
-    app.run(ssl_context=('../secrets/forever.crt', '../secrets/forever.key'), host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
