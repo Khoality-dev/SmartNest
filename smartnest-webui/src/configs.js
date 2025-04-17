@@ -1,1 +1,1 @@
-export const API_URL = "https://smartnest.stellarnest.xyz:5000";
+export const API_URL = "https://smartnest.stellarnest.xyz";
