@@ -47,6 +47,7 @@ def verify_token(f):
         #     return f()
         
         token = ''
+        print("Cookies: ", request.cookies)
         if 'CF_Authorization' in request.cookies:
             token = request.cookies['CF_Authorization']
         else:
