@@ -51,7 +51,7 @@ def verify_token(f):
         if 'CF_Authorization' in request.cookies:
             token = request.cookies['CF_Authorization']
         else:
-            return "missing required cf authorization token" + request.cookies, 403
+            return "missing required cf authorization token", 403
         keys = _get_public_keys()
 
         # Loop through the keys since we can't pass the key set to the decoder
