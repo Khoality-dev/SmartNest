@@ -42,9 +42,9 @@ def verify_token(f):
     Decorator that wraps a Flask API call to verify the CF Access JWT
     """
     def wrapper():
-        if os.get("FLASK_ENV", "development") == "development":
-            # Skip token verification in development mode
-            return f()
+        # if os.get("FLASK_ENV", "development") == "development":
+        #     # Skip token verification in development mode
+        #     return f()
         
         token = ''
         if 'CF_Authorization' in request.cookies:
