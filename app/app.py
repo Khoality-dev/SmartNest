@@ -2,6 +2,7 @@ import json
 import requests
 from smartnest.main import *
 import os
+from functools import wraps
 # app.py
 from flask import Flask, render_template, request, redirect, url_for,jsonify, make_response
 from flask_cors import CORS
@@ -41,7 +42,8 @@ def verify_token(f):
     """
     Decorator that wraps a Flask API call to verify the CF Access JWT
     """
-    def wrapper():
+    @wraps(f)
+    def wrapper(*args, **kwargs):
         # if os.get("FLASK_ENV", "development") == "development":
         #     # Skip token verification in development mode
         #     return f()
@@ -74,7 +76,7 @@ def verify_token(f):
         if not valid_token:
             return "invalid token", 403
 
-        return f()
+        return f(*args, **kwargs)
     return wrapper
 
 @app.route('/list-devices', methods=['GET'])
