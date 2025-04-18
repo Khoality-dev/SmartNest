@@ -11,6 +11,7 @@ function App() {
     try {         // File field
       
       const response = await axios.get(API_URL + '/list-devices', {
+        withCredentials: true,
       });
       console.log('Response:', response.data.devices);
       setDeviceList(response.data.devices);
