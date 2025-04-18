@@ -1,3 +1,4 @@
+import json
 import requests
 from smartnest.main import *
 import os
@@ -12,38 +13,57 @@ CORS(app)
 
 # In-memory "database" for demonstration
 tasks = []
-JWKS_URL = "https://blumoon.cloudflareaccess.com/cdn-cgi/access/certs"
-jwks_keys = requests.get(JWKS_URL).json()["keys"]
+POLICY_AUD = os.getenv("POLICY_AUD")
 
-def jwk_validate(request):
-    if os.get("FLASK_ENV") == "development":
-        return True
+# Your CF Access team domain
+TEAM_DOMAIN = os.getenv("TEAM_DOMAIN")
+CERTS_URL = "{}/cdn-cgi/access/certs".format(TEAM_DOMAIN)
 
-    token = (
-        request.headers.get("Authorization", "").replace("Bearer ", "")
-        or request.cookies.get("CF_Authorization")
-    )
-    print("Frontend Token" + token)
-    if not token:
-        return jsonify({"error": "Missing token"}), 401
-    try:
-        # Try verifying against the first key (basic example — in production, rotate properly)
-        payload = jwt.decode(token, jwt.algorithms.RSAAlgorithm.from_jwk(jwks_keys[0]), algorithms=["RS256"], audience="api.stellarnest.xyz")
-    except jwt.ExpiredSignatureError:
-        print("Token expired")
-        return jsonify({"error": "Token expired"}), 401
-    except jwt.InvalidTokenError:
-        print("Invalid token")
-        return jsonify({"error": "Invalid token"}), 401
 
-    return True
+def _get_public_keys():
+    """
+    Returns:
+        List of RSA public keys usable by PyJWT.
+    """
+    r = requests.get(CERTS_URL)
+    public_keys = []
+    jwk_set = r.json()
+    for key_dict in jwk_set['keys']:
+        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key_dict))
+        public_keys.append(public_key)
+    return public_keys
+
+def verify_token(f):
+    """
+    Decorator that wraps a Flask API call to verify the CF Access JWT
+    """
+    def wrapper():
+        token = ''
+        if 'CF_Authorization' in request.cookies:
+            token = request.cookies['CF_Authorization']
+        else:
+            return "missing required cf authorization token", 403
+        keys = _get_public_keys()
+
+        # Loop through the keys since we can't pass the key set to the decoder
+        valid_token = False
+        for key in keys:
+            try:
+                # decode returns the claims that has the email when needed
+                jwt.decode(token, key=key, audience=POLICY_AUD, algorithms=['RS256'])
+                valid_token = True
+                break
+            except:
+                pass
+        if not valid_token:
+            return "invalid token", 403
+
+        return f()
+    return wrapper
 
 @app.route('/list-devices', methods=['GET'])
+@verify_token
 def list_devices():
-    validation_result = jwk_validate(request)
-    if validation_result is not True:
-        return validation_result
-    
     json_response = {"devices": list_all_devices()}
     return json_response
 
