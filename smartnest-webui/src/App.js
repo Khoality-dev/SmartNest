@@ -11,11 +11,6 @@ function App() {
     try {         // File field
       
       const response = await axios.get(API_URL + '/list-devices', {
-        headers:
-          ((process.env.NODE_ENV === "production") ?
-            {
-              'Authorization': `Bearer ${localStorage.getItem('CF_Authorization')}`
-            } : {})
       });
       console.log('Response:', response.data.devices);
       setDeviceList(response.data.devices);
