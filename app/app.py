@@ -84,7 +84,6 @@ def allowed_file(filename):
 
 
 @app.route('/play', methods=['POST'])
-@verify_token
 def play():
     device_id = int(request.form['device_id'])
     if device_id is None:
@@ -108,7 +107,6 @@ def play():
     return {"success": True}
 
 @app.route('/get-device-infos', methods=['GET'])
-@verify_token
 def get_device_infos():
     if 'device_id' not in request.args:
         return jsonify({"device_infos": get_device_infos()})
@@ -117,7 +115,6 @@ def get_device_infos():
     return jsonify(get_device_info(device_id))
 
 @app.route('/config-device', methods=['POST'])
-@verify_token
 def config_devices():
     device_id = request.json['device_id']
     configs = request.json['configs']
