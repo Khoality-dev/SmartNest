@@ -23,9 +23,14 @@ function App() {
     }
   }
 
-  if (deviceList.length === 0) {
+
+  useEffect(() => {
     fetchDevices();
-  }
+    const intervalId = setInterval(() => {
+      fetchDevices();
+    }, 60000);
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <Stack spacing={2} direction="column">
