@@ -9,6 +9,7 @@ import Box from '@mui/material/Box';
 import SpeakerIcon from '@mui/icons-material/Speaker';
 import { styled } from '@mui/material/styles';
 import { API_URL } from './configs';
+import { getCookieValue } from './utils';
 
 function DeviceCard({ deviceId, deviceName }) {
   const [uploadProgress, setUploadProgress] = React.useState(0);

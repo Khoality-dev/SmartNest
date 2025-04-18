@@ -14,6 +14,7 @@ import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
 import VolumeDownRounded from '@mui/icons-material/VolumeDownRounded';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import RepeatOnIcon from '@mui/icons-material/RepeatOn';
+import { getCookieValue } from './utils';
 import axios from 'axios';
 import { API_URL } from './configs';
 const WallPaper = styled('div')({
