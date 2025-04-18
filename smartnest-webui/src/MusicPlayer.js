@@ -272,7 +272,7 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
             aria-label="Volume"
             defaultValue={30}
             value={volume}
-            onChange={VolumeChangeHandler}
+            onFinalChange={VolumeChangeHandler}
             sx={(t) => ({
               color: 'rgba(0,0,0,0.87)',
               '& .MuiSlider-track': {
