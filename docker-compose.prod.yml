@@ -12,6 +12,8 @@ services:
     environment:
       - PULSE_SERVER=unix:/tmp/pulseaudio.socket
       - FLASK_ENV=production
+    env_file:
+      - .env
     volumes:
       - /tmp/pulseaudio.socket:/tmp/pulseaudio.socket
       - /etc/machine-id:/etc/machine-id:ro  # Needed for PulseAudio
@@ -25,6 +27,8 @@ services:
       target: prod
     environment:
       - NODE_ENV=production
+    env_file:
+      - .env
     ports:
       - "3000:3000"
     restart: unless-stopped
