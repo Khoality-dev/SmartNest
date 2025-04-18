@@ -107,6 +107,7 @@ def play():
     return {"success": True}
 
 @app.route('/get-device-infos', methods=['GET'])
+@verify_token
 def get_device_infos():
     if 'device_id' not in request.args:
         return jsonify({"device_infos": get_device_infos()})
