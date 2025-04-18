@@ -16,26 +16,34 @@ JWKS_URL = "https://blumoon.cloudflareaccess.com/cdn-cgi/access/certs"
 jwks_keys = requests.get(JWKS_URL).json()["keys"]
 
 def jwk_validate(request):
-    # Implement your JWT validation logic here
+    if os.get("FLASK_ENV") == "development":
+        return True
+
     token = (
         request.headers.get("Authorization", "").replace("Bearer ", "")
         or request.cookies.get("CF_Authorization")
     )
+    print("Frontend Token" + token)
     if not token:
         return jsonify({"error": "Missing token"}), 401
     try:
         # Try verifying against the first key (basic example — in production, rotate properly)
-        payload = jwt.decode(token, jwt.algorithms.RSAAlgorithm.from_jwk(jwks_keys[0]), algorithms=["RS256"], audience="api.yourdomain.com")
+        payload = jwt.decode(token, jwt.algorithms.RSAAlgorithm.from_jwk(jwks_keys[0]), algorithms=["RS256"], audience="api.stellarnest.xyz")
     except jwt.ExpiredSignatureError:
+        print("Token expired")
         return jsonify({"error": "Token expired"}), 401
     except jwt.InvalidTokenError:
+        print("Invalid token")
         return jsonify({"error": "Invalid token"}), 401
 
     return True
 
 @app.route('/list-devices', methods=['GET'])
 def list_devices():
-    jwk_validate(request)
+    validation_result = jwk_validate(request)
+    if validation_result is not True:
+        return validation_result
+    
     json_response = {"devices": list_all_devices()}
     return json_response
 

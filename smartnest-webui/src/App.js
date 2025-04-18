@@ -3,14 +3,19 @@ import DeviceCard from './DeviceCard';
 import axios from 'axios';
 import { Stack } from '@mui/material';
 import { useState } from 'react';
-import { API_URL} from './configs'
+import { API_URL } from './configs'
 function App() {
   const [deviceList, setDeviceList] = useState([]);
   const fetchDevices = async () => {
 
     try {         // File field
-      const response = await axios.get( API_URL + '/list-devices', {
-
+      
+      const response = await axios.get(API_URL + '/list-devices', {
+        headers:
+          ((process.env.NODE_ENV === "production") ?
+            {
+              'Authorization': `Bearer ${localStorage.getItem('CF_Authorization')}`
+            } : {})
       });
       console.log('Response:', response.data.devices);
       setDeviceList(response.data.devices);
@@ -18,7 +23,7 @@ function App() {
       console.error(error);
     }
   }
-  
+
   if (deviceList.length === 0) {
     fetchDevices();
   }
@@ -26,7 +31,7 @@ function App() {
   return (
     <Stack spacing={2} direction="column">
       {deviceList.map((device) => (
-        <DeviceCard deviceId={device.device_id} deviceName={device.device_name}/>))}
+        <DeviceCard deviceId={device.device_id} deviceName={device.device_name} />))}
     </Stack>
 
   );

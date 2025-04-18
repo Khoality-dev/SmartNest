@@ -21,6 +21,7 @@ function DeviceCard({ deviceId, deviceName }) {
       console.log('device_name', deviceName)
       const response = await axios.post(API_URL + '/play', formData, {
         headers: {  
+          'Authorization': `Bearer ${localStorage.getItem('CF_Authorization')}`,
           'Content-Type': 'multipart/form-data'
         },
         onUploadProgress: (progressEvent) => {
