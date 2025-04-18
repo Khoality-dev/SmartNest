@@ -3,7 +3,7 @@ import requests
 from smartnest.main import *
 import os
 # app.py
-from flask import Flask, render_template, request, redirect, url_for,jsonify
+from flask import Flask, render_template, request, redirect, url_for,jsonify, make_response
 from flask_cors import CORS
 import jwt
 import jwt.algorithms
@@ -45,6 +45,11 @@ def verify_token(f):
         # if os.get("FLASK_ENV", "development") == "development":
         #     # Skip token verification in development mode
         #     return f()
+        if request.method == 'OPTIONS':
+            # Let Flask-CORS handle it, no token needed
+            response = make_response()
+            response.status_code = 204
+            return response
         
         token = ''
         print("Cookies: ", request.cookies)
