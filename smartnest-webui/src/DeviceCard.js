@@ -19,9 +19,10 @@ function DeviceCard({ deviceId, deviceName }) {
       formData.append('device_id', deviceId);  // Text field
       formData.append('file', selectedFile);           // File field
       console.log('device_name', deviceName)
+      const cfToken = getCookieValue('CF_Authorization');
       const response = await axios.post(API_URL + '/play', formData, {
         headers: {  
-          'Authorization': `Bearer ${localStorage.getItem('CF_Authorization')}`,
+          'Authorization': `Bearer ${cfToken}`,
           'Content-Type': 'multipart/form-data'
         },
         onUploadProgress: (progressEvent) => {

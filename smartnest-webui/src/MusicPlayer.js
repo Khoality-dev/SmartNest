@@ -86,6 +86,9 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
   {
     try {         
       const response = await axios.get(API_URL + '/get-device-infos', {
+        headers: {
+          'Authorization': `Bearer ${getCookieValue('CF_Authorization')}`
+        },
         params : {
           "device_id": deviceId
         }
@@ -109,6 +112,9 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
       formData.append('device_id', deviceId);  // Text field
       formData.append('loop', !loop);         
       const response = await axios.post(API_URL + '/config-device', {
+        'headers': {
+          'Authorization': `Bearer ${getCookieValue('CF_Authorization')}`
+        },
         "device_id": deviceId,
         "configs": {
           "loop": !loop
@@ -123,6 +129,9 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
   const VolumeChangeHandler = async(event, newValue) => {
     try {         
       const response = await axios.post(API_URL + '/config-device', {
+        'headers': {
+          'Authorization': `Bearer ${getCookieValue('CF_Authorization')}`
+        },
         "device_id": deviceId,
         "configs": {
           "volume": newValue
