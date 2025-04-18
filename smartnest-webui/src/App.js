@@ -4,14 +4,17 @@ import axios from 'axios';
 import { Stack } from '@mui/material';
 import { useState } from 'react';
 import { API_URL } from './configs'
+import { getCookieValue } from './utils';
 function App() {
   const [deviceList, setDeviceList] = useState([]);
   const fetchDevices = async () => {
 
     try {         // File field
-      
+      const cfToken = getCookieValue('CF_Authorization');
       const response = await axios.get(API_URL + '/list-devices', {
-        withCredentials: true,
+        headers: {
+          'Authorization': `Bearer ${cfToken}`
+        }
       });
       console.log('Response:', response.data.devices);
       setDeviceList(response.data.devices);
