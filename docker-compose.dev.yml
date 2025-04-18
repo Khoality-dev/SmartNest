@@ -1,0 +1,38 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: ./app/
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "5000:5000"
+    devices:
+      - "/dev/snd:/dev/snd"  # Pass all sound devices
+    environment:
+      - PULSE_SERVER=unix:/tmp/pulseaudio.socket
+      - FLASK_ENV=development
+    volumes:
+      - ./app:/app
+      - /tmp/pulseaudio.socket:/tmp/pulseaudio.socket
+      - /etc/machine-id:/etc/machine-id:ro  # Needed for PulseAudio
+      - /var/lib/dbus:/var/lib/dbus:ro
+    restart: unless-stopped
+  webui:
+    container_name: webui
+    build:
+      context: ./smartnest-webui/
+      dockerfile: Dockerfile
+      target: dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./smartnest-webui/src:/app/src
+      - ./smartnest-webui/public:/app/public
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+
+networks:
+  default:
+    name: smartnest

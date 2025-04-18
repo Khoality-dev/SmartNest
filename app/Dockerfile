@@ -1,4 +1,4 @@
-FROM ubuntu:noble
+FROM python:3.10-slim-bullseye AS base
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -6,19 +6,19 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     portaudio19-dev
 
-RUN add-apt-repository ppa:deadsnakes/ppa
-
-RUN apt-get update && apt-get install -y python3.10 \
-    python3.10-venv \
-    python3.10-dev
-
 RUN mkdir -p /app
 WORKDIR /app
 ADD ./requirements.txt /app/requirements.txt
-RUN python3.10 -m venv venv
-RUN . venv/bin/activate && pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 ADD . /app/
 
-ENTRYPOINT [ "venv/bin/python" ]
+FROM base AS dev
+
+ENTRYPOINT [ "python" ]
 CMD [ "app.py" ]
+
+FROM base AS prod
+
+ENTRYPOINT [ "gunicorn" ]
+CMD [ "--bind", "0.0.0.0:5000", "--workers", "4", "wsgi:app" ]

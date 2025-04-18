@@ -4,12 +4,14 @@ services:
     build:
       context: ./app/
       dockerfile: Dockerfile
+      target: prod
     ports:
       - "5000:5000"
     devices:
       - "/dev/snd:/dev/snd"  # Pass all sound devices
     environment:
       - PULSE_SERVER=unix:/tmp/pulseaudio.socket
+      - FLASK_ENV=production
     volumes:
       - /tmp/pulseaudio.socket:/tmp/pulseaudio.socket
       - /etc/machine-id:/etc/machine-id:ro  # Needed for PulseAudio
@@ -20,6 +22,9 @@ services:
     build:
       context: ./smartnest-webui/
       dockerfile: Dockerfile
+      target: prod
+    environment:
+      - NODE_ENV=production
     ports:
       - "3000:3000"
     restart: unless-stopped

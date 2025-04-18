@@ -1,8 +1,10 @@
+import requests
 from smartnest.main import *
 import os
 # app.py
 from flask import Flask, render_template, request, redirect, url_for,jsonify
 from flask_cors import CORS
+import jwt
 from werkzeug.utils import secure_filename
 import ssl
 app = Flask(__name__)
@@ -10,9 +12,30 @@ CORS(app)
 
 # In-memory "database" for demonstration
 tasks = []
+JWKS_URL = "https://blumoon.cloudflareaccess.com/cdn-cgi/access/certs"
+jwks_keys = requests.get(JWKS_URL).json()["keys"]
+
+def jwk_validate(request):
+    # Implement your JWT validation logic here
+    token = (
+        request.headers.get("Authorization", "").replace("Bearer ", "")
+        or request.cookies.get("CF_Authorization")
+    )
+    if not token:
+        return jsonify({"error": "Missing token"}), 401
+    try:
+        # Try verifying against the first key (basic example — in production, rotate properly)
+        payload = jwt.decode(token, jwt.algorithms.RSAAlgorithm.from_jwk(jwks_keys[0]), algorithms=["RS256"], audience="api.yourdomain.com")
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+
+    return True
 
 @app.route('/list-devices', methods=['GET'])
 def list_devices():
+    jwk_validate(request)
     json_response = {"devices": list_all_devices()}
     return json_response
 
