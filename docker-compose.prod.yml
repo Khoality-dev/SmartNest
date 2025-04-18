@@ -1,6 +1,6 @@
 services:
   backend:
-    container_name: backend
+    container_name: smartnest-backend
     build:
       context: ./app/
       dockerfile: Dockerfile
@@ -18,7 +18,7 @@ services:
       - /var/lib/dbus:/var/lib/dbus:ro
     restart: unless-stopped
   webui:
-    container_name: webui
+    container_name: smartnest-webui
     build:
       context: ./smartnest-webui/
       dockerfile: Dockerfile

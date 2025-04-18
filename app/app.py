@@ -15,10 +15,14 @@ CORS(app)
 tasks = []
 POLICY_AUD = os.getenv("POLICY_AUD")
 
-# Your CF Access team domain
 TEAM_DOMAIN = os.getenv("TEAM_DOMAIN")
 CERTS_URL = "{}/cdn-cgi/access/certs".format(TEAM_DOMAIN)
 
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'mp3'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 16MB limit
 
 def _get_public_keys():
     """
@@ -38,6 +42,10 @@ def verify_token(f):
     Decorator that wraps a Flask API call to verify the CF Access JWT
     """
     def wrapper():
+        if os.get("FLASK_ENV", "development") == "development":
+            # Skip token verification in development mode
+            return f()
+        
         token = ''
         if 'CF_Authorization' in request.cookies:
             token = request.cookies['CF_Authorization']
@@ -66,12 +74,6 @@ def verify_token(f):
 def list_devices():
     json_response = {"devices": list_all_devices()}
     return json_response
-
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'mp3'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 16MB limit
 
 def allowed_file(filename):
     return '.' in filename and \
