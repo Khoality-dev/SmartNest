@@ -10,7 +10,7 @@ import jwt.algorithms
 from werkzeug.utils import secure_filename
 import ssl
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
 
 # In-memory "database" for demonstration
 tasks = []
