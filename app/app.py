@@ -6,6 +6,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for,jsonify
 from flask_cors import CORS
 import jwt
+import jwt.algorithms
 from werkzeug.utils import secure_filename
 import ssl
 app = Flask(__name__)
@@ -14,7 +15,6 @@ CORS(app)
 # In-memory "database" for demonstration
 tasks = []
 POLICY_AUD = os.getenv("POLICY_AUD")
-
 TEAM_DOMAIN = os.getenv("TEAM_DOMAIN")
 CERTS_URL = "{}/cdn-cgi/access/certs".format(TEAM_DOMAIN)
 
