@@ -73,7 +73,6 @@ def verify_token(f):
     return wrapper
 
 @app.route('/list-devices', methods=['GET'])
-@verify_token
 def list_devices():
     json_response = {"devices": list_all_devices()}
     return json_response
