@@ -44,9 +44,10 @@ def verify_token(f):
     """
     @wraps(f)
     def wrapper(*args, **kwargs):
-        # if os.get("FLASK_ENV", "development") == "development":
-        #     # Skip token verification in development mode
-        #     return f()
+        if os.getenv("FLASK_ENV", "development") == "development":
+            # Skip token verification in development mode
+            return f(*args, **kwargs)
+        
         if request.method == 'OPTIONS':
             # Let Flask-CORS handle it, no token needed
             response = make_response()
