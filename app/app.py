@@ -50,6 +50,8 @@ def verify_token(f):
         print("Cookies: ", request.cookies)
         if 'CF_Authorization' in request.cookies:
             token = request.cookies['CF_Authorization']
+        elif 'Authorization' in request.headers:
+            token = request.headers['Authorization'].replace('Bearer ', '')
         else:
             return "missing required cf authorization token", 403
         keys = _get_public_keys()
