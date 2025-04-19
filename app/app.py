@@ -1,6 +1,5 @@
 import json
 import requests
-from smartnest.main import *
 import os
 from functools import wraps
 # app.py
@@ -10,6 +9,7 @@ import jwt
 import jwt.algorithms
 from werkzeug.utils import secure_filename
 import ssl
+from smartnest.main import list_all_devices, play_audio, config_device, init
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
@@ -19,26 +19,13 @@ POLICY_AUD = os.getenv("POLICY_AUD")
 TEAM_DOMAIN = os.getenv("TEAM_DOMAIN")
 CERTS_URL = "{}/cdn-cgi/access/certs".format(TEAM_DOMAIN)
 
-current_path = os.path.dirname(os.path.realpath(__file__))
-DATA_FOLDER = os.path.join(current_path, 'data')
-CONFIG_FILE = os.path.join(DATA_FOLDER, 'config.json')
-
-UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads')
 ALLOWED_EXTENSIONS = {'mp3', 'wav'}
+current_path = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/")
+DATA_FOLDER = os.path.join(current_path, 'smartnest', 'data').replace("\\", "/")
+UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads').replace("\\", "/")
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB limit
-
-
-config = {}
-if os.path.exists(CONFIG_FILE):
-    with open(CONFIG_FILE, 'r') as f:
-        config = json.load(f)
-
-    devices = list_all_devices()
-    if devices != config['devices']:
-        #TODO: figure out how to update the config file with the new devices
-        pass
 
 
 def _get_public_keys():
@@ -128,20 +115,9 @@ def play():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         play_audio(device_name, filepath)
-        #config[devices['device_name']] = {
         return {"success": True}
     else:
         return jsonify({'error': 'Invalid file type'}), 400
-    
-
-@app.route('/get-device-infos', methods=['GET'])
-@verify_token
-def get_device_infos():
-    if 'device_id' not in request.args:
-        return {"success": False, "error": "Invalid request"}
-
-    device_id = int(request.args.get('device_id'))
-    return jsonify(get_device_info(device_id))
 
 @app.route('/config-device', methods=['POST'])
 @verify_token
@@ -155,4 +131,5 @@ def config_devices():
     return {"success": True}
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    init()
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
