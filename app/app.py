@@ -19,7 +19,8 @@ POLICY_AUD = os.getenv("POLICY_AUD")
 TEAM_DOMAIN = os.getenv("TEAM_DOMAIN")
 CERTS_URL = "{}/cdn-cgi/access/certs".format(TEAM_DOMAIN)
 
-UPLOAD_FOLDER = 'uploads'
+current_path = os.path.dirname(os.path.realpath(__file__))
+UPLOAD_FOLDER = os.path.join(current_path, 'uploads')
 ALLOWED_EXTENSIONS = {'mp3'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
