@@ -23,65 +23,6 @@ if os.path.exists(CONFIG_FILE):
         config = json.load(f)
 
 
-def update_device_infos():
-    global devices, config, p
-    while True:
-        avaliable_devices = {}
-
-        for i in range(p.get_device_count()):
-            device_info = p.get_device_info_by_index(i)
-            if device_info['maxOutputChannels'] != 0:
-                avaliable_devices[device_info['name']] = {'device_name':device_info['name'], 'device_id': i, **device_info}
-
-        for device_name in avaliable_devices:
-            if device_name not in devices or devices[device_name]["available"] == False:
-                new_device = {
-                    "sample_rate": int(avaliable_devices[device_name]["defaultSampleRate"]),
-                    "channels": int(avaliable_devices[device_name]["maxOutputChannels"]),
-                    "playing_thread": None,
-                    "is_playing": False,
-                    "status": "Idle",
-                    "looping": True,
-                    "duration": 0, 
-                    "position": 0,
-                    "volume": 100,
-                    "file_name": "",
-                    "available": True,
-                    **avaliable_devices[device_name]
-                }
-                devices[device_name] = new_device
-                print(f"New device found: {device_name}")
-
-                if device_name in config:
-                    devices[device_name]["volume"] = config[device_name]["volume"]
-                    devices[device_name]["looping"] = config[device_name]["looping"]
-                    if "file_name" in config[device_name] and config[device_name]['file_name'] != "" and os.path.exists(os.path.join(UPLOAD_FOLDER, config[device_name]["file_name"])):
-                        play_audio(device_name, os.path.join(UPLOAD_FOLDER, config[device_name]["file_name"]))
-        
-        device_names = list(devices.keys())
-        for device_name in device_names:
-            if device_name not in avaliable_devices:
-                
-                if 'playing_thread' in devices[device_name] and devices[device_name]["playing_thread"] is not None:
-                    devices[device_name]["is_playing"] = False
-                    devices[device_name]["playing_thread"].join()
-
-                devices[device_name]["available"] = False
-        with open(CONFIG_FILE, 'w') as f:
-            config = {}
-            for device_name in devices:
-                config[device_name] = {
-                    "volume": devices[device_name]["volume"],
-                    "looping": devices[device_name]["looping"],
-                    "file_name": devices[device_name]["file_name"]
-                }
-            json.dump(config, f)
-        time.sleep(5)
-
-device_scan_thread = threading.Thread(target=update_device_infos)
-device_scan_thread.daemon = True
-device_scan_thread.start()
-
 
 def list_all_devices():
     global devices
@@ -182,3 +123,62 @@ def play_audio(device_name, file_path):
     device['position'] = 0
     device["playing_thread"] = threading.Thread(target=play_audio_thread, args=(device, file_name, audio_data, device["sample_rate"], audio_segment.sample_width, audio_segment.channels, device["device_id"]))
     device["playing_thread"].start() 
+
+def update_device_infos():
+    global devices, config, p
+    while True:
+        avaliable_devices = {}
+
+        for i in range(p.get_device_count()):
+            device_info = p.get_device_info_by_index(i)
+            if device_info['maxOutputChannels'] != 0:
+                avaliable_devices[device_info['name']] = {'device_name':device_info['name'], 'device_id': i, **device_info}
+
+        for device_name in avaliable_devices:
+            if device_name not in devices or devices[device_name]["available"] == False:
+                new_device = {
+                    "sample_rate": int(avaliable_devices[device_name]["defaultSampleRate"]),
+                    "channels": int(avaliable_devices[device_name]["maxOutputChannels"]),
+                    "playing_thread": None,
+                    "is_playing": False,
+                    "status": "Idle",
+                    "looping": True,
+                    "duration": 0, 
+                    "position": 0,
+                    "volume": 100,
+                    "file_name": "",
+                    "available": True,
+                    **avaliable_devices[device_name]
+                }
+                devices[device_name] = new_device
+                print(f"New device found: {device_name}")
+
+                if device_name in config:
+                    devices[device_name]["volume"] = config[device_name]["volume"]
+                    devices[device_name]["looping"] = config[device_name]["looping"]
+                    if "file_name" in config[device_name] and config[device_name]['file_name'] != "" and os.path.exists(os.path.join(UPLOAD_FOLDER, config[device_name]["file_name"])):
+                        play_audio(device_name, os.path.join(UPLOAD_FOLDER, config[device_name]["file_name"]))
+        
+        device_names = list(devices.keys())
+        for device_name in device_names:
+            if device_name not in avaliable_devices:
+                
+                if 'playing_thread' in devices[device_name] and devices[device_name]["playing_thread"] is not None:
+                    devices[device_name]["is_playing"] = False
+                    devices[device_name]["playing_thread"].join()
+
+                devices[device_name]["available"] = False
+        with open(CONFIG_FILE, 'w') as f:
+            config = {}
+            for device_name in devices:
+                config[device_name] = {
+                    "volume": devices[device_name]["volume"],
+                    "looping": devices[device_name]["looping"],
+                    "file_name": devices[device_name]["file_name"]
+                }
+            json.dump(config, f)
+        time.sleep(5)
+
+device_scan_thread = threading.Thread(target=update_device_infos)
+device_scan_thread.daemon = True
+device_scan_thread.start()
