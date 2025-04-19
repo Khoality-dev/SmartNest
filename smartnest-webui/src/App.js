@@ -45,16 +45,8 @@ function App() {
     };
   }
 
-
-  useEffect(() => {
-    fetchDevices();
-    const intervalId = setInterval(() => {
-      console.log('Fetching devices...');
-      fetchDevices();
-    }, 60000);
-    return () => clearInterval(intervalId);
-  }, []);
-
+  fetchDevices();
+  
   return (
     <Stack spacing={2} direction="column">
       {deviceList.map((device, index) => (
