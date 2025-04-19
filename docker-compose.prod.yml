@@ -18,6 +18,7 @@ services:
       - /tmp/pulseaudio.socket:/tmp/pulseaudio.socket
       - /etc/machine-id:/etc/machine-id:ro  # Needed for PulseAudio
       - /var/lib/dbus:/var/lib/dbus:ro
+      - app/smartnest/data:/app/smartnest/data
     restart: unless-stopped
   webui:
     container_name: smartnest-webui
