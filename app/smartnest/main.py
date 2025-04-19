@@ -5,24 +5,21 @@ import pyaudio
 import pydub
 import threading
 
-def init():
-    global DATA_FOLDER, UPLOAD_FOLDER, CONFIG_FILE, devices, config
-    
-    current_path = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/")
-    DATA_FOLDER = os.path.join(current_path, 'data').replace("\\", "/")
-    UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads').replace("\\", "/")
-    CONFIG_FILE = os.path.join(DATA_FOLDER, 'config.json').replace("\\", "/")
+current_path = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/")
+DATA_FOLDER = os.path.join(current_path, 'data').replace("\\", "/")
+UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads').replace("\\", "/")
+CONFIG_FILE = os.path.join(DATA_FOLDER, 'config.json').replace("\\", "/")
 
-    if not os.path.exists(DATA_FOLDER):
-        os.makedirs(DATA_FOLDER)
-    if not os.path.exists(UPLOAD_FOLDER):
-        os.makedirs(UPLOAD_FOLDER)
-    devices = {}
-    config = {}
+if not os.path.exists(DATA_FOLDER):
+    os.makedirs(DATA_FOLDER)
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+devices = {}
+config = {}
 
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, 'r') as f:
-            config = json.load(f)
+if os.path.exists(CONFIG_FILE):
+    with open(CONFIG_FILE, 'r') as f:
+        config = json.load(f)
 
 
 def update_device_infos():

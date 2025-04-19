@@ -9,7 +9,7 @@ import jwt
 import jwt.algorithms
 from werkzeug.utils import secure_filename
 import ssl
-from smartnest.main import list_all_devices, play_audio, config_device, init
+from smartnest.main import *
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
