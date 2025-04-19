@@ -23,8 +23,6 @@ if os.path.exists(CONFIG_FILE):
         config = json.load(f)
 
 def event_stream():
-    
-    global devices
     while True:
         cloned_devices = devices.copy()
         available_devices = []
@@ -44,9 +42,9 @@ def event_stream():
         yield f"data: {json.dumps(available_devices)}\n\n"
         time.sleep(1)
 
+event_stream_generator = event_stream()
 
 def list_all_devices():
-    global devices
     # available_devices = []
     # cloned_devices = devices.copy()
     # for device_name in cloned_devices:
@@ -62,7 +60,7 @@ def list_all_devices():
     #         "looping": device["looping"],
     #         "file_name": device["file_name"],
     #     })
-    return event_stream()
+    return event_stream_generator
 
 def config_device(device_name, configs):
     global devices
@@ -151,7 +149,7 @@ def ping_audio_device(device):
     global devices
     # play a silent audio to check if the device is available
     try:
-        audio_segment = pydub.AudioSegment.silent(duration=10)
+        audio_segment = pydub.AudioSegment.silent(duration=1000)
         audio_data = audio_segment.raw_data
         stream = p.open(
             format=pyaudio.paInt16,
@@ -165,8 +163,7 @@ def ping_audio_device(device):
         stream.close()
     except Exception as e:
         print("Error:", e)
-        if "Unanticipated host error" in str(e):
-            return False
+        return False
 
     return True
 
