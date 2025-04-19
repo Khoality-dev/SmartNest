@@ -3,7 +3,7 @@ import requests
 import os
 from functools import wraps
 # app.py
-from flask import Flask, render_template, request, redirect, url_for,jsonify, make_response
+from flask import Flask, Response, render_template, request, redirect, url_for,jsonify, make_response
 from flask_cors import CORS
 import jwt
 import jwt.algorithms
@@ -83,11 +83,11 @@ def verify_token(f):
         return f(*args, **kwargs)
     return wrapper
 
-@app.route('/list-devices', methods=['GET'])
-@verify_token
+@app.route('/list-devices')
+#@verify_token
 def list_devices():
-    json_response = {"devices": list_all_devices()}
-    return json_response
+    json_response = list_all_devices()
+    return Response(json_response, mimetype='text/event-stream')
 
 def allowed_file(filename):
     return '.' in filename and \

@@ -22,26 +22,47 @@ if os.path.exists(CONFIG_FILE):
     with open(CONFIG_FILE, 'r') as f:
         config = json.load(f)
 
+def event_stream():
+    
+    global devices
+    while True:
+        cloned_devices = devices.copy()
+        available_devices = []
+        for device_name in cloned_devices:
+            if not cloned_devices[device_name]["available"]:
+                continue
+            device = cloned_devices[device_name]
+            #if filtering_name in device['device_name']:
+            available_devices.append({
+                "device_name": device["device_name"],
+                "status": device["status"],
+                "duration": device["duration"],
+                "position": device["position"],
+                "looping": device["looping"],
+                "file_name": device["file_name"],
+            })
+        yield f"data: {json.dumps(available_devices)}\n\n"
+        time.sleep(1)
 
 
 def list_all_devices():
     global devices
-    available_devices = []
-    cloned_devices = devices.copy()
-    for device_name in cloned_devices:
-        if not cloned_devices[device_name]["available"]:
-            continue
-        device = cloned_devices[device_name]
-        #if filtering_name in device['device_name']:
-        available_devices.append({
-            "device_name": device["device_name"],
-            "status": device["status"],
-            "duration": device["duration"],
-            "position": device["position"],
-            "looping": device["looping"],
-            "file_name": device["file_name"],
-        })
-    return available_devices
+    # available_devices = []
+    # cloned_devices = devices.copy()
+    # for device_name in cloned_devices:
+    #     if not cloned_devices[device_name]["available"]:
+    #         continue
+    #     device = cloned_devices[device_name]
+    #     #if filtering_name in device['device_name']:
+    #     available_devices.append({
+    #         "device_name": device["device_name"],
+    #         "status": device["status"],
+    #         "duration": device["duration"],
+    #         "position": device["position"],
+    #         "looping": device["looping"],
+    #         "file_name": device["file_name"],
+    #     })
+    return event_stream()
 
 def config_device(device_name, configs):
     global devices
@@ -105,6 +126,8 @@ def play_audio(device_name, file_path):
             stream.stop_stream()
             stream.close()
         except Exception as e:
+            if "Unanticipated host error" in str(e):
+                device["available"] = False
             print("Error:", e)
         device['status'] = "Idle"
         device['position'] = 0
@@ -124,6 +147,29 @@ def play_audio(device_name, file_path):
     device["playing_thread"] = threading.Thread(target=play_audio_thread, args=(device, file_name, audio_data, device["sample_rate"], audio_segment.sample_width, audio_segment.channels, device["device_id"]))
     device["playing_thread"].start() 
 
+def ping_audio_device(device):
+    global devices
+    # play a silent audio to check if the device is available
+    try:
+        audio_segment = pydub.AudioSegment.silent(duration=10)
+        audio_data = audio_segment.raw_data
+        stream = p.open(
+            format=pyaudio.paInt16,
+            channels=device["channels"],
+            rate=device["sample_rate"],
+            output=True,
+            output_device_index=device["device_id"]
+        )
+        stream.write(audio_data)
+        stream.stop_stream()
+        stream.close()
+    except Exception as e:
+        print("Error:", e)
+        if "Unanticipated host error" in str(e):
+            return False
+
+    return True
+
 def update_device_infos():
     global devices, config, p
     while True:
@@ -135,7 +181,15 @@ def update_device_infos():
                 avaliable_devices[device_info['name']] = {'device_name':device_info['name'], 'device_id': i, **device_info}
 
         for device_name in avaliable_devices:
-            if device_name not in devices or devices[device_name]["available"] == False:
+            
+            reconnected = False
+            if device_name in devices and not devices[device_name]['available']:
+                ping_result = ping_audio_device(devices[device_name])
+                if ping_result and devices[device_name]["available"] == False:
+                    reconnected = True
+                devices[device_name]["available"] = ping_result
+
+            if device_name not in devices or reconnected:
                 new_device = {
                     "sample_rate": int(avaliable_devices[device_name]["defaultSampleRate"]),
                     "channels": int(avaliable_devices[device_name]["maxOutputChannels"]),
@@ -152,22 +206,13 @@ def update_device_infos():
                 }
                 devices[device_name] = new_device
                 print(f"New device found: {device_name}")
-
+                
                 if device_name in config:
                     devices[device_name]["volume"] = config[device_name]["volume"]
                     devices[device_name]["looping"] = config[device_name]["looping"]
                     if "file_name" in config[device_name] and config[device_name]['file_name'] != "" and os.path.exists(os.path.join(UPLOAD_FOLDER, config[device_name]["file_name"])):
                         play_audio(device_name, os.path.join(UPLOAD_FOLDER, config[device_name]["file_name"]))
-        
-        device_names = list(devices.keys())
-        for device_name in device_names:
-            if device_name not in avaliable_devices:
-                
-                if 'playing_thread' in devices[device_name] and devices[device_name]["playing_thread"] is not None:
-                    devices[device_name]["is_playing"] = False
-                    devices[device_name]["playing_thread"].join()
 
-                devices[device_name]["available"] = False
         with open(CONFIG_FILE, 'w') as f:
             config = {}
             for device_name in devices:
