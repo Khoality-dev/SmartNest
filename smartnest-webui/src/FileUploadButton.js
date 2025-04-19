@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Button, Typography } from '@mui/material';
 
-const FileUploadButton = ({ deviceId, setSelectedFile }) => {
+const FileUploadButton = ({ deviceIndex, setSelectedFile }) => {
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -15,11 +15,11 @@ const FileUploadButton = ({ deviceId, setSelectedFile }) => {
             <input
                 accept=".mp3"
                 style={{ display: 'none' }}
-                id={`file-upload-${deviceId}`}
+                id={`file-upload-${deviceIndex}`}
                 type="file"
                 onChange={handleFileChange}
             />
-            <label htmlFor={`file-upload-${deviceId}`}>
+            <label htmlFor={`file-upload-${deviceIndex}`}>
                 <Button variant="contained" component="span">
                     Chon file nhac
                 </Button>

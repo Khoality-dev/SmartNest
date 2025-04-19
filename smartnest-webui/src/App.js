@@ -17,7 +17,11 @@ function App() {
         }
       });
       console.log('Response:', response.data.devices);
-      setDeviceList(response.data.devices);
+      response.data.devices.mediaStatus = {}
+      let devices = response.data.devices.map((device) => {
+        return { ...device, mediaStatus: { file_name: device.file_name, duration: device.duration, position: device.position, paused: device.status == "Playing" ? false : true, looping: device.looping, volume: device.volume } }
+      })
+      setDeviceList(devices);
     } catch (error) {
       console.error(error);
     }
@@ -28,14 +32,14 @@ function App() {
     fetchDevices();
     const intervalId = setInterval(() => {
       fetchDevices();
-    }, 60000);
+    }, 1000);
     return () => clearInterval(intervalId);
   }, []);
 
   return (
     <Stack spacing={2} direction="column">
-      {deviceList.map((device) => (
-        <DeviceCard deviceId={device.device_id} deviceName={device.device_name} />))}
+      {deviceList.map((device, index) => (
+        <DeviceCard key={index} deviceIndex={index} deviceName={device.device_name} mediaStatus={device.mediaStatus} />))}
     </Stack>
 
   );

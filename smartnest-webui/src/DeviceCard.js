@@ -11,15 +11,15 @@ import { styled } from '@mui/material/styles';
 import { API_URL } from './configs';
 import { getCookieValue } from './utils';
 
-function DeviceCard({ deviceId, deviceName }) {
+function DeviceCard({ deviceIndex, deviceName, mediaStatus }) {
   const [uploadProgress, setUploadProgress] = React.useState(0);
   const [selectedFile, setSelectedFile] = React.useState(null);
   const playFile = async (selectedFile) => {
     try {
       const formData = new FormData();
-      formData.append('device_id', deviceId);  // Text field
-      formData.append('file', selectedFile);           // File field
-      console.log('device_name', deviceName)
+      formData.append('device_name', deviceName);  
+      formData.append('file', selectedFile);       
+      console.log('device_name', deviceName);
       const cfToken = getCookieValue('CF_Authorization');
       const response = await axios.post(API_URL + '/play', formData, {
         headers: {  
@@ -49,8 +49,8 @@ function DeviceCard({ deviceId, deviceName }) {
     <Box border={1} borderColor={'#e0e0e0'} borderRadius={4} padding={2}>
     <Stack spacing={2} direction={'row'}>
       <CoverImage src={'/home/khoa/SmartNest/smartnest-webui/public/logo192.png'} />
-      <MusicPlayerSlider deviceId={deviceId} deviceName={deviceName}></MusicPlayerSlider>
-      <FileUploadButton deviceId={deviceId} setSelectedFile={setSelectedFile}></FileUploadButton>
+      <MusicPlayerSlider deviceName={deviceName} mediaStatus={mediaStatus}></MusicPlayerSlider>
+      <FileUploadButton deviceIndex={deviceIndex} setSelectedFile={setSelectedFile}></FileUploadButton>
     </Stack>
     </Box>
   );
