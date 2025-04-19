@@ -87,7 +87,11 @@ def verify_token(f):
 #@verify_token
 def list_devices():
     json_response = list_all_devices()
-    return Response(json_response, mimetype='text/event-stream')
+    response = Response(json_response, mimetype='text/event-stream')
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['X-Accel-Buffering'] = 'no'
+    return response
+    #return Response(json_response, mimetype='text/event-stream')
 
 def allowed_file(filename):
     return '.' in filename and \
