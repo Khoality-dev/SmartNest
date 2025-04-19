@@ -9,6 +9,7 @@ current_path = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/")
 DATA_FOLDER = os.path.join(current_path, 'data').replace("\\", "/")
 UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads').replace("\\", "/")
 CONFIG_FILE = os.path.join(DATA_FOLDER, 'config.json').replace("\\", "/")
+p = pyaudio.PyAudio()
 
 if not os.path.exists(DATA_FOLDER):
     os.makedirs(DATA_FOLDER)
@@ -23,17 +24,14 @@ if os.path.exists(CONFIG_FILE):
 
 
 def update_device_infos():
-    global devices, config
+    global devices, config, p
     while True:
         avaliable_devices = {}
-        p = pyaudio.PyAudio()
 
         for i in range(p.get_device_count()):
             device_info = p.get_device_info_by_index(i)
             if device_info['maxOutputChannels'] != 0:
                 avaliable_devices[device_info['name']] = {'device_name':device_info['name'], 'device_id': i, **device_info}
-
-        p.terminate()
 
         for device_name in avaliable_devices:
             if device_name not in devices or devices[device_name]["available"] == False:
@@ -124,7 +122,6 @@ def play_audio(device_name, file_path):
     audio_data = audio_segment.set_frame_rate(device["sample_rate"])
     
     def play_audio_thread(device, file_name, audio_data, sample_rate, sample_width, channels, device_index):
-        device['pyaudio'] = p = pyaudio.PyAudio()
         
         try:
             stream = p.open(
@@ -168,8 +165,6 @@ def play_audio(device_name, file_path):
             stream.close()
         except Exception as e:
             print("Error:", e)
-        p.terminate()
-        device['pyaudio'] = None
         device['status'] = "Idle"
         device['position'] = 0
         device['duration'] = 0
