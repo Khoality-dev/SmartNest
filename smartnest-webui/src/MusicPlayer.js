@@ -71,7 +71,7 @@ const TinyText = styled(Typography)({
   letterSpacing: 0.2,
 });
 
-export default function MusicPlayerSlider({deviceId, deviceName}) {
+export default function MusicPlayerSlider({deviceName, mediaStatus}) {
   const [position, setPosition] = React.useState(0);
   const [paused, setPaused] = React.useState(true);
   const [fileName, setFileName] = React.useState('');
@@ -83,40 +83,14 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
     const secondLeft = value - minute * 60;
     return `${minute}:${secondLeft < 10 ? `0${secondLeft}` : secondLeft}`;
   }
-  const getDeviceInfo = async () =>
-  {
-    try {         
-      const response = await axios.get(API_URL + '/get-device-infos', {
-        headers: {
-          'Authorization': `Bearer ${getCookieValue('CF_Authorization')}`
-        },
-        params : {
-          "device_id": deviceId
-        }
-      });
-      console.log('Response:', response.data);
-      setFileName(response.data.file_name);
-      setDuration(response.data.duration);
-      setPosition(response.data.position);
-      setPaused(response.data.status == "Playing" ? false : true);
-      setLoop(response.data.looping);
-      setVolume(response.data.volume);
-    } catch (error) {
-      console.error(error);
-    }
-  }
 
   const RepeatOnClickHandler = async() => {
-    try {         
-      console.log("Looping:", loop);
-      const formData = new FormData();
-      formData.append('device_id', deviceId);  // Text field
-      formData.append('loop', !loop);         
+    try {              
       const response = await axios.post(API_URL + '/config-device', {
         'headers': {
           'Authorization': `Bearer ${getCookieValue('CF_Authorization')}`
         },
-        "device_id": deviceId,
+        "device_name": deviceName,
         "configs": {
           "loop": !loop
         }
@@ -133,7 +107,7 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
         'headers': {
           'Authorization': `Bearer ${getCookieValue('CF_Authorization')}`
         },
-        "device_id": deviceId,
+        "device_name": deviceName,
         "configs": {
           "volume": newValue
         }
@@ -145,13 +119,15 @@ export default function MusicPlayerSlider({deviceId, deviceName}) {
   }
 
   useEffect(() => {
-    getDeviceInfo();
+    setFileName(mediaStatus.file_name);
+    setDuration(mediaStatus.duration);
+    setPosition(mediaStatus.position);
+    setPaused(mediaStatus.paused);
+    setLoop(mediaStatus.looping);
+    setVolume(mediaStatus.volume);
+  }
+  , [mediaStatus]);
 
-    const interval = setInterval(getDeviceInfo, 1000);
-    
-    // Clean up interval when component unmounts
-    return () => clearInterval(interval);
-  }, [])
   return (
       <Widget>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>

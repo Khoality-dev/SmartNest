@@ -1,6 +1,5 @@
 import json
 import requests
-from smartnest.main import *
 import os
 from functools import wraps
 # app.py
@@ -10,6 +9,7 @@ import jwt
 import jwt.algorithms
 from werkzeug.utils import secure_filename
 import ssl
+from smartnest.main import list_all_devices, play_audio, config_device, init
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
@@ -19,11 +19,14 @@ POLICY_AUD = os.getenv("POLICY_AUD")
 TEAM_DOMAIN = os.getenv("TEAM_DOMAIN")
 CERTS_URL = "{}/cdn-cgi/access/certs".format(TEAM_DOMAIN)
 
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'mp3'}
+ALLOWED_EXTENSIONS = {'mp3', 'wav'}
+current_path = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/")
+DATA_FOLDER = os.path.join(current_path, 'smartnest', 'data').replace("\\", "/")
+UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads').replace("\\", "/")
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 16MB limit
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB limit
+
 
 def _get_public_keys():
     """
@@ -94,8 +97,8 @@ def allowed_file(filename):
 @app.route('/play', methods=['POST'])
 @verify_token
 def play():
-    device_id = int(request.form['device_id'])
-    if device_id is None:
+    device_name = str(request.form['device_name'])
+    if device_name is None:
         return {"success": False, "error": "Invalid request"}
     
     if 'file' not in request.files:
@@ -111,29 +114,22 @@ def play():
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
-        play_audio(device_id, filepath)
-
-    return {"success": True}
-
-@app.route('/get-device-infos', methods=['GET'])
-@verify_token
-def get_device_infos():
-    if 'device_id' not in request.args:
-        return {"success": False, "error": "Invalid request"}
-
-    device_id = int(request.args.get('device_id'))
-    return jsonify(get_device_info(device_id))
+        play_audio(device_name, filepath)
+        return {"success": True}
+    else:
+        return jsonify({'error': 'Invalid file type'}), 400
 
 @app.route('/config-device', methods=['POST'])
 @verify_token
 def config_devices():
-    device_id = request.json['device_id']
+    device_name = str(request.json['device_name'])
     configs = request.json['configs']
-    if device_id is None:
+    if device_name is None:
         return {"success": False, "error": "Invalid request"}
 
-    config_device(device_id, configs)
+    config_device(device_name, configs)
     return {"success": True}
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    init()
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
