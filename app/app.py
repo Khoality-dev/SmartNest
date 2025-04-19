@@ -119,7 +119,7 @@ def play():
 @verify_token
 def get_device_infos():
     if 'device_id' not in request.args:
-        return jsonify({"device_infos": get_device_infos()})
+        return {"success": False, "error": "Invalid request"}
 
     device_id = int(request.args.get('device_id'))
     return jsonify(get_device_info(device_id))
