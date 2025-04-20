@@ -23,11 +23,13 @@ logger = Logger("SmartNest")
 if os.path.exists(CONFIG_FILE):
     with open(CONFIG_FILE, 'r') as f:
         config = json.load(f)
-
+num_streams = 0
 def event_stream():
     global devices
     print("Starting event stream...")
     increment = 0
+    num_streams+=1
+    print("num_streams", num_streams)
     while True:
         cloned_devices = devices
         available_devices = []
@@ -48,6 +50,7 @@ def event_stream():
                 "increment": increment,
                 "position_index": device.get("position_index", 0),
             })
+            print("device_name", device_name, "increment", device['position'])
         return_string = {"timestamp": datetime.datetime.now().timestamp(), "devices": available_devices}
         yield f"data: {json.dumps(return_string)}\n\n"
         time.sleep(1)
