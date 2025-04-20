@@ -27,7 +27,7 @@ def event_stream():
     global devices
     print("Starting event stream...")
     while True:
-        cloned_devices = devices.copy()
+        cloned_devices = devices
         available_devices = []
         logger.debug(f"Devices: {devices}")
         for device_name in cloned_devices:
