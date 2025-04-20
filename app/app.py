@@ -88,8 +88,6 @@ def verify_token(f):
 def list_devices():
     json_response = list_all_devices()
     response = Response(json_response, mimetype='text/event-stream')
-    response.headers['Cache-Control'] = 'no-store'
-    response.headers['X-Accel-Buffering'] = 'no'
     return response
     #return Response(json_response, mimetype='text/event-stream')
 

@@ -24,6 +24,7 @@ if os.path.exists(CONFIG_FILE):
         config = json.load(f)
 
 def event_stream():
+    print("Starting event stream...")
     while True:
         cloned_devices = devices.copy()
         available_devices = []
@@ -45,8 +46,6 @@ def event_stream():
         yield f"data: {json.dumps(available_devices)}\n\n"
         time.sleep(1)
 
-event_stream_generator = event_stream()
-
 def list_all_devices():
     # available_devices = []
     # cloned_devices = devices.copy()
@@ -63,7 +62,7 @@ def list_all_devices():
     #         "looping": device["looping"],
     #         "file_name": device["file_name"],
     #     })
-    return event_stream_generator
+    return event_stream()
 
 def config_device(device_name, configs):
     global devices
