@@ -1,4 +1,5 @@
 import json
+from logging import Logger
 import os
 import time
 import pyaudio
@@ -17,7 +18,7 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 devices = {}
 config = {}
-
+logger = Logger("SmartNest")
 if os.path.exists(CONFIG_FILE):
     with open(CONFIG_FILE, 'r') as f:
         config = json.load(f)
@@ -26,6 +27,7 @@ def event_stream():
     while True:
         cloned_devices = devices.copy()
         available_devices = []
+        logger.debug(f"Devices: {devices}")
         for device_name in cloned_devices:
             if not cloned_devices[device_name]["available"]:
                 continue
