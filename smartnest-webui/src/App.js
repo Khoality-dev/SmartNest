@@ -7,6 +7,7 @@ import { API_URL } from './configs'
 import { getCookieValue } from './utils';
 function App() {
   const [deviceList, setDeviceList] = useState([]);
+  const [eventSource, setEventSource] = useState(null);
   const fetchDevices = () => {
 
     // try {        
@@ -25,8 +26,8 @@ function App() {
     // } catch (error) {
     //   console.error(error);
     // }
-    const eventSource = new EventSource(API_URL + '/list-devices');
-
+    
+    setEventSource(new EventSource(API_URL + '/list-devices'));
     eventSource.onmessage = function(event) {
       const devices = JSON.parse(event.data);
       console.log('Devices:', devices);
