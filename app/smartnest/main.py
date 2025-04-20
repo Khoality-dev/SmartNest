@@ -25,7 +25,7 @@ if os.path.exists(CONFIG_FILE):
         config = json.load(f)
 num_streams = 0
 def event_stream():
-    global devices
+    global devices, num_streams
     print("Starting event stream...")
     increment = 0
     num_streams+=1
