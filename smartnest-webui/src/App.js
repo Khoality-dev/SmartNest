@@ -7,7 +7,7 @@ import { API_URL } from './configs'
 import { getCookieValue } from './utils';
 function App() {
   const [deviceList, setDeviceList] = useState([]);
-  const fetchDevices = () => {
+  const fetchDevices = async () => {
 
     // try {        
     //   const cfToken = getCookieValue('CF_Authorization');
