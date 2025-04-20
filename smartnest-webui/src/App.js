@@ -9,7 +9,7 @@ function App() {
   const [deviceList, setDeviceList] = useState([]);
 
   useEffect(() => {
-    eventSource = new EventSource(API_URL + '/list-devices');
+    const eventSource = new EventSource(API_URL + '/list-devices');
     eventSource.onmessage = function(event) {
       const devices = JSON.parse(event.data);
       console.log('Devices:', devices);
