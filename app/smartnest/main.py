@@ -1,3 +1,4 @@
+import datetime
 import json
 from logging import Logger
 import os
@@ -31,7 +32,6 @@ def event_stream():
         cloned_devices = devices
         available_devices = []
         logger.debug(f"Devices: {devices}")
-        increment += 1
         for device_name in cloned_devices:
             if not cloned_devices[device_name]["available"]:
                 continue
@@ -48,7 +48,8 @@ def event_stream():
                 "increment": increment,
                 "position_index": device.get("position_index", 0),
             })
-        yield f"data: {json.dumps(available_devices)}\n\n"
+        return_string = {"timestamp": datetime.datetime.now().timestamp(), "devices": available_devices}
+        yield f"data: {json.dumps(return_string)}\n\n"
         time.sleep(1)
 
 def list_all_devices():

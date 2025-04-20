@@ -7,24 +7,33 @@ import { API_URL } from './configs'
 import { getCookieValue } from './utils';
 function App() {
   const [deviceList, setDeviceList] = useState([]);
-
+  const [lastTimestamp, setLastTimestamp] = useState(0);
   useEffect(() => {
     const eventSource = new EventSource(API_URL + '/list-devices');
-    eventSource.onmessage = function(event) {
-      const devices = JSON.parse(event.data);
-      console.log('Devices:', devices);
-      const transformed = devices.map(device => ({
-        ...device,
-        mediaStatus: {
-          file_name: device.file_name,
-          duration: device.duration,
-          position: device.position,
-          paused: device.status !== "Playing",
-          looping: device.looping,
-          volume: device.volume
-        }
-      }));
-      setDeviceList(transformed);
+    eventSource.onmessage = function (event) {
+      const body = JSON.parse(event.data);
+      const timestamp = body.timestamp;
+      console.log('Timestamp:', timestamp, 'Last timestamp:', lastTimestamp, 'Compare:', timestamp > lastTimestamp);
+
+      if (timestamp > lastTimestamp) {
+
+        const devices = body.devices;
+
+        console.log('Devices:', devices);
+        const transformed = devices.map(device => ({
+          ...device,
+          mediaStatus: {
+            file_name: device.file_name,
+            duration: device.duration,
+            position: device.position,
+            paused: device.status !== "Playing",
+            looping: device.looping,
+            volume: device.volume
+          }
+        }));
+        setLastTimestamp(timestamp);
+        setDeviceList(transformed);
+      }
     };
     return () => {
       eventSource.close();
