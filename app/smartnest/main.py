@@ -42,7 +42,7 @@ def event_stream():
                 "position": device["position"],
                 "looping": device["looping"],
                 "file_name": device["file_name"],
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                "timestamp": device["timestamp"],
             })
         yield f"data: {json.dumps(available_devices)}\n\n"
         time.sleep(1)
@@ -119,6 +119,7 @@ def play_audio(device_name, file_path):
                     stream.write(chunk)
                     index += chunk_size
                     device['position'] = int((index / len(raw_data)) * device['duration'])
+                    device['timestamp'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
                 if not device["looping"] or not device["is_playing"]:
                     break
