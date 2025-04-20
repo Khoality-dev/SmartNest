@@ -24,6 +24,7 @@ if os.path.exists(CONFIG_FILE):
         config = json.load(f)
 
 def event_stream():
+    global devices
     print("Starting event stream...")
     while True:
         cloned_devices = devices.copy()
