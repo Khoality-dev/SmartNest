@@ -22,4 +22,4 @@ CMD [ "app.py" ]
 FROM base AS prod
 
 ENTRYPOINT [ "gunicorn" ]
-CMD [ "--bind", "0.0.0.0:5000", "--workers", "4", "wsgi:app" ]
+CMD [ "--bind", "0.0.0.0:5000", "--worker-class", "gevent", "--timeout 0", "--workers", "4", "wsgi:app" ]

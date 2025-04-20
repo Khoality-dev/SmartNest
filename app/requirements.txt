@@ -12,3 +12,4 @@ gunicorn
 requests
 cryptography
 pyjwt
+gevent
