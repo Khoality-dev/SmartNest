@@ -42,7 +42,7 @@ def event_stream():
                 "position": device["position"],
                 "looping": device["looping"],
                 "file_name": device["file_name"],
-                "timestamp": device["timestamp"],
+                "timestamp": device.get("timestamp", "")
             })
         yield f"data: {json.dumps(available_devices)}\n\n"
         time.sleep(1)
