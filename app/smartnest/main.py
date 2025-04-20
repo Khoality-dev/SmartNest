@@ -26,10 +26,12 @@ if os.path.exists(CONFIG_FILE):
 def event_stream():
     global devices
     print("Starting event stream...")
+    increment = 0
     while True:
         cloned_devices = devices
         available_devices = []
         logger.debug(f"Devices: {devices}")
+        increment += 1
         for device_name in cloned_devices:
             if not cloned_devices[device_name]["available"]:
                 continue
@@ -42,7 +44,9 @@ def event_stream():
                 "position": device["position"],
                 "looping": device["looping"],
                 "file_name": device["file_name"],
-                "timestamp": device.get("timestamp", "")
+                "timestamp": device.get("timestamp", ""),
+                "increment": increment,
+                "position_index": device.get("position_index", 0),
             })
         yield f"data: {json.dumps(available_devices)}\n\n"
         time.sleep(1)
@@ -119,6 +123,7 @@ def play_audio(device_name, file_path):
                     stream.write(chunk)
                     index += chunk_size
                     device['position'] = int((index / len(raw_data)) * device['duration'])
+                    device['position_index'] = index
                     device['timestamp'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
                 if not device["looping"] or not device["is_playing"]:
