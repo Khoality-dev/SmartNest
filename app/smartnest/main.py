@@ -23,55 +23,24 @@ logger = Logger("SmartNest")
 if os.path.exists(CONFIG_FILE):
     with open(CONFIG_FILE, 'r') as f:
         config = json.load(f)
-num_streams = 0
-def event_stream():
-    global devices, num_streams
-    print("Starting event stream...")
-    increment = 0
-    num_streams+=1
-    print("num_streams", num_streams)
-    while True:
-        cloned_devices = devices
-        available_devices = []
-        logger.debug(f"Devices: {devices}")
-        for device_name in cloned_devices:
-            if not cloned_devices[device_name]["available"]:
-                continue
-            device = cloned_devices[device_name]
-            #if filtering_name in device['device_name']:
-            available_devices.append({
-                "device_name": device["device_name"],
-                "status": device["status"],
-                "duration": device["duration"],
-                "position": device["position"],
-                "looping": device["looping"],
-                "file_name": device["file_name"],
-                "timestamp": device.get("timestamp", ""),
-                "increment": increment,
-                "position_index": device.get("position_index", 0),
-            })
-            print("device_name", device_name, "increment", device['position'])
-        return_string = {"timestamp": datetime.datetime.now().timestamp(), "devices": available_devices}
-        yield f"data: {json.dumps(return_string)}\n\n"
-        time.sleep(1)
 
 def list_all_devices():
-    # available_devices = []
-    # cloned_devices = devices.copy()
-    # for device_name in cloned_devices:
-    #     if not cloned_devices[device_name]["available"]:
-    #         continue
-    #     device = cloned_devices[device_name]
-    #     #if filtering_name in device['device_name']:
-    #     available_devices.append({
-    #         "device_name": device["device_name"],
-    #         "status": device["status"],
-    #         "duration": device["duration"],
-    #         "position": device["position"],
-    #         "looping": device["looping"],
-    #         "file_name": device["file_name"],
-    #     })
-    return event_stream()
+    available_devices = []
+    cloned_devices = devices.copy()
+    for device_name in cloned_devices:
+        if not cloned_devices[device_name]["available"]:
+            continue
+        device = cloned_devices[device_name]
+        #if filtering_name in device['device_name']:
+        available_devices.append({
+            "device_name": device["device_name"],
+            "status": device["status"],
+            "duration": device["duration"],
+            "position": device["position"],
+            "looping": device["looping"],
+            "file_name": device["file_name"],
+        })
+    return available_devices
 
 def config_device(device_name, configs):
     global devices
