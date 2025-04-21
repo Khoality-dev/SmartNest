@@ -39,6 +39,7 @@ def list_all_devices():
             "position": device["position"],
             "looping": device["looping"],
             "file_name": device["file_name"],
+            "volume": device["volume"],
         })
     return available_devices
 
