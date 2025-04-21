@@ -7,37 +7,34 @@ import { API_URL } from './configs'
 import { getCookieValue } from './utils';
 function App() {
   const [deviceList, setDeviceList] = useState([]);
-  const [lastTimestamp, setLastTimestamp] = useState(0);
-  useEffect(() => {
-    const eventSource = new EventSource(API_URL + '/list-devices');
-    eventSource.onmessage = function (event) {
-      const body = JSON.parse(event.data);
-      const timestamp = body.timestamp;
-      console.log('Timestamp:', timestamp, 'Last timestamp:', lastTimestamp, 'Compare:', timestamp > lastTimestamp);
+  
+  const fetchDevices = async () => {
 
-      if (timestamp > lastTimestamp) {
-
-        const devices = body.devices;
-
-        console.log('Devices:', devices);
-        const transformed = devices.map(device => ({
-          ...device,
-          mediaStatus: {
-            file_name: device.file_name,
-            duration: device.duration,
-            position: device.position,
-            paused: device.status !== "Playing",
-            looping: device.looping,
-            volume: device.volume
-          }
-        }));
-        setLastTimestamp(timestamp);
-        setDeviceList(transformed);
-      }
-    };
-    return () => {
-      eventSource.close();
+    try {         // File field
+      const cfToken = getCookieValue('CF_Authorization');
+      const response = await axios.get(API_URL + '/list-devices', {
+        headers: {
+          'Authorization': `Bearer ${cfToken}`
+        }
+      });
+      console.log('Response:', response.data.devices);
+      response.data.devices.mediaStatus = {}
+      let devices = response.data.devices.map((device) => {
+        return { ...device, mediaStatus: { file_name: device.file_name, duration: device.duration, position: device.position, paused: device.status == "Playing" ? false : true, looping: device.looping, volume: device.volume } }
+      })
+      setDeviceList(devices);
+    } catch (error) {
+      console.error(error);
     }
+  }
+
+
+  useEffect(() => {
+    fetchDevices();
+    const intervalId = setInterval(() => {
+      fetchDevices();
+    }, 1000);
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
