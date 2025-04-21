@@ -46,7 +46,7 @@ function DeviceCard({ deviceIndex, deviceName, mediaStatus }) {
 
   // check the deviceName lowercase, if it contains 'USB' then it is a USB device, if it is headphones then it is headphone.jpg, if it is speaker.jpg, etc.
   // else it is unknown device.
-  const device_image = '/images/' + (deviceName.toLowerCase().includes('usb')? 'usb.jpg' : deviceName.toLowerCase().includes('headphone') ? 'headphone.jpg' : 'speaker.jpg');
+  const device_image = '/'+ (deviceName.toLowerCase().includes('usb')? 'usb.jpg' : deviceName.toLowerCase().includes('headphone') ? 'headphone.jpg' : 'speaker.jpg');
   return (
     <Box border={1} borderColor={'#e0e0e0'} borderRadius={4} padding={2}>
       <Stack spacing={2} direction={'row'} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
