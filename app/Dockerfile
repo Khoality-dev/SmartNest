@@ -17,9 +17,9 @@ RUN mkdir -p /app/smartnest/data
 FROM base AS dev
 
 ENTRYPOINT [ "python" ]
-CMD [ "app.py" ]
+CMD [ "app.py", "--debug" ]
 
 FROM base AS prod
 
-ENTRYPOINT [ "gunicorn" ]
-CMD [ "--bind", "0.0.0.0:5000", "--workers", "4", "wsgi:app" ]
+ENTRYPOINT [ "python" ]
+CMD [ "app.py" ]

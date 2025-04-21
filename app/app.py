@@ -1,9 +1,10 @@
+import argparse
 import json
 import requests
 import os
 from functools import wraps
 # app.py
-from flask import Flask, render_template, request, redirect, url_for,jsonify, make_response
+from flask import Flask, Response, render_template, request, redirect, url_for,jsonify, make_response
 from flask_cors import CORS
 import jwt
 import jwt.algorithms
@@ -83,11 +84,11 @@ def verify_token(f):
         return f(*args, **kwargs)
     return wrapper
 
-@app.route('/list-devices', methods=['GET'])
+@app.route('/list-devices')
 @verify_token
 def list_devices():
-    json_response = {"devices": list_all_devices()}
-    return json_response
+    json_response = list_all_devices()
+    return {"devices": json_response}
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -131,4 +132,7 @@ def config_devices():
     return {"success": True}
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+    parser = argparse.ArgumentParser(description='SmartNest API')
+    parser.add_argument('--debug', action='store_true', help='Debug mode')
+    args = parser.parse_args()
+    app.run(host='0.0.0.0', port=5000, debug=args.debug, use_reloader=False)
