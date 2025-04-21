@@ -17,12 +17,12 @@ function DeviceCard({ deviceIndex, deviceName, mediaStatus }) {
   const playFile = async (selectedFile) => {
     try {
       const formData = new FormData();
-      formData.append('device_name', deviceName);  
-      formData.append('file', selectedFile);       
+      formData.append('device_name', deviceName);
+      formData.append('file', selectedFile);
       console.log('device_name', deviceName);
       const cfToken = getCookieValue('CF_Authorization');
       const response = await axios.post(API_URL + '/play', formData, {
-        headers: {  
+        headers: {
           'Authorization': `Bearer ${cfToken}`,
           'Content-Type': 'multipart/form-data'
         },
@@ -38,20 +38,22 @@ function DeviceCard({ deviceIndex, deviceName, mediaStatus }) {
     }
   }
 
-  useEffect(() =>
-  {
-    if (selectedFile)
-    {
+  useEffect(() => {
+    if (selectedFile) {
       playFile(selectedFile);
     }
   }, [selectedFile])
+
+  // check the deviceName lowercase, if it contains 'USB' then it is a USB device, if it is headphones then it is headphone.jpg, if it is speaker.jpg, etc.
+  // else it is unknown device.
+  const device_image = '/images/' + (deviceName.toLowerCase().includes('usb')? 'usb.jpg' : deviceName.toLowerCase().includes('headphone') ? 'headphone.jpg' : 'speaker.jpg');
   return (
     <Box border={1} borderColor={'#e0e0e0'} borderRadius={4} padding={2}>
-    <Stack spacing={2} direction={'row'}>
-      <CoverImage src={'/home/khoa/SmartNest/smartnest-webui/public/logo192.png'} />
-      <MusicPlayerSlider deviceName={deviceName} mediaStatus={mediaStatus}></MusicPlayerSlider>
-      <FileUploadButton deviceIndex={deviceIndex} setSelectedFile={setSelectedFile}></FileUploadButton>
-    </Stack>
+      <Stack spacing={2} direction={'row'} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
+        <img src={device_image} alt={deviceName} width={72} height={72} />
+        <MusicPlayerSlider deviceName={deviceName} mediaStatus={mediaStatus}></MusicPlayerSlider>
+        <FileUploadButton deviceIndex={deviceIndex} setSelectedFile={setSelectedFile}></FileUploadButton>
+      </Stack>
     </Box>
   );
 }
