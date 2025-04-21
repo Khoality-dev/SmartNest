@@ -71,7 +71,7 @@ const TinyText = styled(Typography)({
   letterSpacing: 0.2,
 });
 
-export default function MusicPlayerSlider({deviceName, mediaStatus}) {
+export default function MusicPlayerSlider({ deviceName, mediaStatus }) {
   const [position, setPosition] = React.useState(0);
   const [paused, setPaused] = React.useState(true);
   const [fileName, setFileName] = React.useState('');
@@ -84,15 +84,17 @@ export default function MusicPlayerSlider({deviceName, mediaStatus}) {
     return `${minute}:${secondLeft < 10 ? `0${secondLeft}` : secondLeft}`;
   }
 
-  const RepeatOnClickHandler = async() => {
-    try {              
-      const response = await axios.post(API_URL + '/config-device', {
-        'headers': {
+  const RepeatOnClickHandler = async () => {
+    try {
+      const response = await axios.post(API_URL + '/config-device',
+        {
+          device_name: deviceName,
+          configs: {
+            loop: !loop
+          }
+        }, {
+        headers: {
           'Authorization': `Bearer ${getCookieValue('CF_Authorization')}`
-        },
-        "device_name": deviceName,
-        "configs": {
-          "loop": !loop
         }
       });
       console.log('Response:', response.data);
@@ -101,15 +103,17 @@ export default function MusicPlayerSlider({deviceName, mediaStatus}) {
     }
   }
 
-  const VolumeChangeHandler = async(event, newValue) => {
-    try {         
-      const response = await axios.post(API_URL + '/config-device', {
-        'headers': {
+  const VolumeChangeCommitHandler = async (event, newValue) => {
+    try {
+      const response = await axios.post(API_URL + '/config-device',
+        {
+          device_name: deviceName,
+          configs: {
+            volume: newValue
+          }
+        }, {
+        headers: {
           'Authorization': `Bearer ${getCookieValue('CF_Authorization')}`
-        },
-        "device_name": deviceName,
-        "configs": {
-          "volume": newValue
         }
       });
       console.log('Response:', response.data);
@@ -126,152 +130,153 @@ export default function MusicPlayerSlider({deviceName, mediaStatus}) {
     setLoop(mediaStatus.looping);
     setVolume(mediaStatus.volume);
   }
-  , [mediaStatus]);
+    , [mediaStatus]);
 
   return (
-      <Widget>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ ml: 1.5, minWidth: 0 }}>
-            <Typography
-              variant="caption"
-              sx={{ color: 'text.secondary', fontWeight: 500 }}
-            >
-              Jun Pulse
-            </Typography>
-            <Typography noWrap>
-              <b>{deviceName}</b>
-            </Typography>
-            <Typography noWrap sx={{ letterSpacing: -0.25 }}>
-              {fileName}
-            </Typography>
-          </Box>
+    <Widget>
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ ml: 1.5, minWidth: 0 }}>
+          <Typography
+            variant="caption"
+            sx={{ color: 'text.secondary', fontWeight: 500 }}
+          >
+            Jun Pulse
+          </Typography>
+          <Typography noWrap>
+            <b>{deviceName}</b>
+          </Typography>
+          <Typography noWrap sx={{ letterSpacing: -0.25 }}>
+            {fileName}
+          </Typography>
         </Box>
+      </Box>
+      <Slider
+        aria-label="time-indicator"
+        size="small"
+        value={position}
+        min={0}
+        step={1}
+        max={duration}
+        onChange={(_, value) => setPosition(value)}
+        sx={(t) => ({
+          color: 'rgba(0,0,0,0.87)',
+          height: 4,
+          '& .MuiSlider-thumb': {
+            width: 8,
+            height: 8,
+            transition: '0.3s cubic-bezier(.47,1.64,.41,.8)',
+            '&::before': {
+              boxShadow: '0 2px 12px 0 rgba(0,0,0,0.4)',
+            },
+            '&:hover, &.Mui-focusVisible': {
+              boxShadow: `0px 0px 0px 8px ${'rgb(0 0 0 / 16%)'}`,
+              ...t.applyStyles('dark', {
+                boxShadow: `0px 0px 0px 8px ${'rgb(255 255 255 / 16%)'}`,
+              }),
+            },
+            '&.Mui-active': {
+              width: 20,
+              height: 20,
+            },
+          },
+          '& .MuiSlider-rail': {
+            opacity: 0.28,
+          },
+          ...t.applyStyles('dark', {
+            color: '#fff',
+          }),
+        })}
+      />
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mt: -2,
+        }}
+      >
+        <TinyText>{formatDuration(position)}</TinyText>
+        <TinyText>-{formatDuration(duration - position)}</TinyText>
+      </Box>
+      <Box
+        sx={(theme) => ({
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mt: -1,
+          '& svg': {
+            color: '#000',
+            ...theme.applyStyles('dark', {
+              color: '#fff',
+            }),
+          },
+        })}
+      >
+        <IconButton aria-label="previous song">
+          <FastRewindRounded fontSize="large" />
+        </IconButton>
+        <IconButton
+          aria-label={paused ? 'play' : 'pause'}
+          onClick={() => setPaused(!paused)}
+        >
+          {paused ? (
+            <PlayArrowRounded sx={{ fontSize: '3rem' }} />
+          ) : (
+            <PauseRounded sx={{ fontSize: '3rem' }} />
+          )}
+        </IconButton>
+        <IconButton aria-label="next song">
+          <FastForwardRounded fontSize="large" />
+        </IconButton>
+        <IconButton aria-label="loop" onClick={RepeatOnClickHandler}>
+          {((loop) ? <RepeatOnIcon /> : <RepeatIcon />)}
+        </IconButton>
+      </Box>
+      <Stack
+        spacing={2}
+        direction="row"
+        sx={(theme) => ({
+          mb: 1,
+          px: 1,
+          '& > svg': {
+            color: 'rgba(0,0,0,0.4)',
+            ...theme.applyStyles('dark', {
+              color: 'rgba(255,255,255,0.4)',
+            }),
+          },
+        })}
+        alignItems="center"
+      >
+        <VolumeDownRounded />
         <Slider
-          aria-label="time-indicator"
-          size="small"
-          value={position}
-          min={0}
-          step={1}
-          max={duration}
-          onChange={(_, value) => setPosition(value)}
+          aria-label="Volume"
+          defaultValue={30}
+          value={volume}
+          onChange={(_, value) => setVolume(value)}
+          onChangeCommitted={VolumeChangeCommitHandler}
           sx={(t) => ({
             color: 'rgba(0,0,0,0.87)',
-            height: 4,
-            '& .MuiSlider-thumb': {
-              width: 8,
-              height: 8,
-              transition: '0.3s cubic-bezier(.47,1.64,.41,.8)',
-              '&::before': {
-                boxShadow: '0 2px 12px 0 rgba(0,0,0,0.4)',
-              },
-              '&:hover, &.Mui-focusVisible': {
-                boxShadow: `0px 0px 0px 8px ${'rgb(0 0 0 / 16%)'}`,
-                ...t.applyStyles('dark', {
-                  boxShadow: `0px 0px 0px 8px ${'rgb(255 255 255 / 16%)'}`,
-                }),
-              },
-              '&.Mui-active': {
-                width: 20,
-                height: 20,
-              },
+            '& .MuiSlider-track': {
+              border: 'none',
             },
-            '& .MuiSlider-rail': {
-              opacity: 0.28,
+            '& .MuiSlider-thumb': {
+              width: 24,
+              height: 24,
+              backgroundColor: '#fff',
+              '&::before': {
+                boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
+              },
+              '&:hover, &.Mui-focusVisible, &.Mui-active': {
+                boxShadow: 'none',
+              },
             },
             ...t.applyStyles('dark', {
               color: '#fff',
             }),
           })}
         />
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mt: -2,
-          }}
-        >
-          <TinyText>{formatDuration(position)}</TinyText>
-          <TinyText>-{formatDuration(duration - position)}</TinyText>
-        </Box>
-        <Box
-          sx={(theme) => ({
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mt: -1,
-            '& svg': {
-              color: '#000',
-              ...theme.applyStyles('dark', {
-                color: '#fff',
-              }),
-            },
-          })}
-        >
-          <IconButton aria-label="previous song">
-            <FastRewindRounded fontSize="large" />
-          </IconButton>
-          <IconButton
-            aria-label={paused ? 'play' : 'pause'}
-            onClick={() => setPaused(!paused)}
-          >
-            {paused ? (
-              <PlayArrowRounded sx={{ fontSize: '3rem' }} />
-            ) : (
-              <PauseRounded sx={{ fontSize: '3rem' }} />
-            )}
-          </IconButton>
-          <IconButton aria-label="next song">
-            <FastForwardRounded fontSize="large" />
-          </IconButton>
-          <IconButton aria-label="loop" onClick={RepeatOnClickHandler}>
-            {((loop) ? <RepeatOnIcon/> : <RepeatIcon/>)}
-          </IconButton>
-        </Box>
-        <Stack
-          spacing={2}
-          direction="row"
-          sx={(theme) => ({
-            mb: 1,
-            px: 1,
-            '& > svg': {
-              color: 'rgba(0,0,0,0.4)',
-              ...theme.applyStyles('dark', {
-                color: 'rgba(255,255,255,0.4)',
-              }),
-            },
-          })}
-          alignItems="center"
-        >
-          <VolumeDownRounded />
-          <Slider
-            aria-label="Volume"
-            defaultValue={30}
-            value={volume}
-            onChangeCommitted={VolumeChangeHandler}
-            sx={(t) => ({
-              color: 'rgba(0,0,0,0.87)',
-              '& .MuiSlider-track': {
-                border: 'none',
-              },
-              '& .MuiSlider-thumb': {
-                width: 24,
-                height: 24,
-                backgroundColor: '#fff',
-                '&::before': {
-                  boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
-                },
-                '&:hover, &.Mui-focusVisible, &.Mui-active': {
-                  boxShadow: 'none',
-                },
-              },
-              ...t.applyStyles('dark', {
-                color: '#fff',
-              }),
-            })}
-          />
-          <VolumeUpRounded />
-        </Stack>
-      </Widget>
+        <VolumeUpRounded />
+      </Stack>
+    </Widget>
   );
 }
