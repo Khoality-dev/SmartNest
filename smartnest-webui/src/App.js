@@ -5,9 +5,16 @@ import { Stack } from '@mui/material';
 import { useState } from 'react';
 import { API_URL } from './configs'
 import { getCookieValue } from './utils';
+import MediaSelectDialogOpen from './MediaSelectDialog';
 import Box from '@mui/material/Box';
 function App() {
   const [deviceList, setDeviceList] = useState([]);
+  const [mediaSelectDialogOpen, setMediaSelectDialogOpen] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState("");
+  const setMediaSelectDialogOpenHandler = (deviceName) => {
+    setMediaSelectDialogOpen(true);
+    setSelectedDevice(deviceName);
+  }
 
   const fetchDevices = async () => {
 
@@ -39,10 +46,14 @@ function App() {
   }, []);
 
   return (
+    <>
+    <MediaSelectDialogOpen deviceName={selectedDevice} open={mediaSelectDialogOpen} onClose={() => setMediaSelectDialogOpen(false)}></MediaSelectDialogOpen>
     <Stack spacing={2} direction="column">
       {deviceList.map((device, index) => (
-        <DeviceCard key={index} deviceIndex={index} deviceName={device.device_name} mediaStatus={device.mediaStatus} sx={{ width: '100%' }} />))}
+        <DeviceCard key={index} deviceIndex={index} deviceName={device.device_name} mediaStatus={device.mediaStatus} setMediaSelectDialogOpen={setMediaSelectDialogOpenHandler} />))}
     </Stack>
+    </>
+    
 
   );
 }

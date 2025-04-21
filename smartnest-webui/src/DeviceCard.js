@@ -10,67 +10,25 @@ import SpeakerIcon from '@mui/icons-material/Speaker';
 import { styled } from '@mui/material/styles';
 import { API_URL } from './configs';
 import { getCookieValue } from './utils';
+import Button from '@mui/material/Button';
 
-function DeviceCard({ deviceIndex, deviceName, mediaStatus }) {
-  const [uploadProgress, setUploadProgress] = React.useState(0);
-  const [selectedFile, setSelectedFile] = React.useState(null);
-  const playFile = async (selectedFile) => {
-    try {
-      const formData = new FormData();
-      formData.append('device_name', deviceName);
-      formData.append('file', selectedFile);
-      console.log('device_name', deviceName);
-      const cfToken = getCookieValue('CF_Authorization');
-      const response = await axios.post(API_URL + '/play', formData, {
-        headers: {
-          'Authorization': `Bearer ${cfToken}`,
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
-          setUploadProgress(percentCompleted);
-        }
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  useEffect(() => {
-    if (selectedFile) {
-      playFile(selectedFile);
-    }
-  }, [selectedFile])
+function DeviceCard({ deviceName, mediaStatus, setMediaSelectDialogOpen }) {
+  
 
   // check the deviceName lowercase, if it contains 'USB' then it is a USB device, if it is headphones then it is headphone.jpg, if it is speaker.jpg, etc.
   // else it is unknown device.
+  // <FileUploadButton deviceIndex={deviceIndex} setSelectedFile={setSelectedFile}></FileUploadButton>
   const device_image = '/'+ (deviceName.toLowerCase().includes('usb')? 'usb.jpg' : deviceName.toLowerCase().includes('headphone') ? 'headphone.jpg' : 'speaker.jpg');
   return (
     <Box border={1} borderColor={'#e0e0e0'} borderRadius={4} padding={2}>
       <Stack spacing={2} direction={'row'} sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
-        <img src={device_image} alt={deviceName} width={72} height={72} />
+        <img src={device_image} alt={deviceName} width={80} height={72} />
         <MusicPlayerSlider deviceName={deviceName} mediaStatus={mediaStatus}></MusicPlayerSlider>
-        <FileUploadButton deviceIndex={deviceIndex} setSelectedFile={setSelectedFile}></FileUploadButton>
+        <Button variant="contained" component="span" onClick={() => setMediaSelectDialogOpen(deviceName)}>Chọn nhạc</Button>
       </Stack>
     </Box>
   );
 }
-
-
-const CoverImage = styled('div')({
-  width: 100,
-  height: 100,
-  objectFit: 'cover',
-  overflow: 'hidden',
-  flexShrink: 0,
-  borderRadius: 8,
-  backgroundColor: 'rgba(0,0,0,0.08)',
-  '& > img': {
-    width: '100%',
-  },
-});
 
 
 export default DeviceCard;

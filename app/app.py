@@ -94,14 +94,9 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
-@app.route('/play', methods=['POST'])
+@app.route('/upload', methods=['POST'])
 @verify_token
-def play():
-    device_name = str(request.form['device_name'])
-    if device_name is None:
-        return {"success": False, "error": "Invalid request"}
-    
+def upload():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     
@@ -115,10 +110,34 @@ def play():
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
-        play_audio(device_name, filepath)
         return {"success": True}
     else:
         return jsonify({'error': 'Invalid file type'}), 400
+
+@app.route('/play', methods=['POST'])
+@verify_token
+def play():
+    device_name = str(request.json['device_name'])
+    filename = secure_filename(str(request.json['filename']))
+    if device_name is None:
+        return {"success": False, "error": "Invalid request"}
+    
+    if filename is None or not allowed_file(filename) or not os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], filename)):
+        return {"success": False, "error": "Invalid file"}
+
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    play_audio(device_name, filepath)
+    return {"success": True}
+        
+
+@app.route('/media')
+@verify_token
+def media():
+    media_list = []
+    for file in os.listdir(UPLOAD_FOLDER):
+        if allowed_file(file):
+            media_list.append(file)
+    return {"media": media_list}
 
 @app.route('/config-device', methods=['POST'])
 @verify_token
