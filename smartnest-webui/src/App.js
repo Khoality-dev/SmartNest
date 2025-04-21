@@ -5,9 +5,10 @@ import { Stack } from '@mui/material';
 import { useState } from 'react';
 import { API_URL } from './configs'
 import { getCookieValue } from './utils';
+import Box from '@mui/material/Box';
 function App() {
   const [deviceList, setDeviceList] = useState([]);
-  
+
   const fetchDevices = async () => {
 
     try {         // File field
@@ -40,7 +41,7 @@ function App() {
   return (
     <Stack spacing={2} direction="column">
       {deviceList.map((device, index) => (
-        <DeviceCard key={index} deviceIndex={index} deviceName={device.device_name} mediaStatus={device.mediaStatus} />))}
+        <DeviceCard key={index} deviceIndex={index} deviceName={device.device_name} mediaStatus={device.mediaStatus} sx={{ width: '100%' }} />))}
     </Stack>
 
   );
