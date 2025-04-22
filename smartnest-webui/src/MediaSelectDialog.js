@@ -53,12 +53,14 @@ const MediaSelectDialog = ({ deviceName, open, onClose }) => {
       <DialogTitle>Select Media Source</DialogTitle>
       <DialogContent justifyContent="center" alignItems="center">
         <FileUploadButton deviceName={deviceName} />
-        <Grid container spacing={2} justifyContent="left" alignItems="left">
+        <Grid container spacing={2}>
           {mediaList.map((media) => (
             <Grid item xs={4} sm={3} md={2} key={media}>
-              <IconButton onClick={() => handleSelect(media)}>
+              <IconButton onClick={() => handleSelect(media)} textAlign="left">
                 <AudioFileIcon sx={{ fontSize: 50 }} />
-                <Typography variant="body2" fontSize={25} justifyContent="left" alignItems="left">{media}</Typography>
+                <Typography variant="body2" textAlign="left">
+                  {media}
+                </Typography>
               </IconButton>
             </Grid>
           ))}
