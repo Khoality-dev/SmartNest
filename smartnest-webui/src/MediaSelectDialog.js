@@ -9,14 +9,10 @@ import {
   Typography,
   Box
 } from '@mui/material';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
-import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
-import ImageIcon from '@mui/icons-material/Image';
 import axios from 'axios';
 import AudioFileIcon from '@mui/icons-material/AudioFile';
 import { API_URL } from './configs';
 import { getCookieValue } from './utils';
-import Button from '@mui/material/Button';
 import FileUploadButton from './FileUploadButton';
 import { playFile } from './FileUploadButton';
 

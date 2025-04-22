@@ -51,6 +51,15 @@ def config_device(device_name, configs):
             device["looping"] = configs['loop']
         if 'volume' in configs:
             device["volume"] = min(max(configs['volume'],0), 100)
+        if 'stop' in configs:
+            if device["playing_thread"] is not None:
+                device["is_playing"] = False
+                device["playing_thread"].join()
+                device["playing_thread"] = None
+                device['status'] = "Idle"
+                device['position'] = 0
+                device['duration'] = 0
+                device['file_name'] = ""
 
 
 def play_audio(device_name, file_path):
