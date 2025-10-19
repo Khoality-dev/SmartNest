@@ -4,7 +4,6 @@ import axios from 'axios';
 import { Stack } from '@mui/material';
 import { useState } from 'react';
 import { API_URL } from './configs'
-import { getCookieValue } from './utils';
 import MediaSelectDialogOpen from './MediaSelectDialog';
 import Box from '@mui/material/Box';
 function App() {
@@ -19,12 +18,7 @@ function App() {
   const fetchDevices = async () => {
 
     try {         // File field
-      const cfToken = getCookieValue('CF_Authorization');
-      const response = await axios.get(API_URL + '/list-devices', {
-        headers: {
-          'Authorization': `Bearer ${cfToken}`
-        }
-      });
+      const response = await axios.get(API_URL + '/list-devices');
       console.log('Response:', response.data.devices);
       response.data.devices.mediaStatus = {}
       let devices = response.data.devices.map((device) => {

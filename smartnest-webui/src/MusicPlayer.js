@@ -14,7 +14,6 @@ import VolumeUpRounded from '@mui/icons-material/VolumeUpRounded';
 import VolumeDownRounded from '@mui/icons-material/VolumeDownRounded';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import RepeatOnIcon from '@mui/icons-material/RepeatOn';
-import { getCookieValue } from './utils';
 import axios from 'axios';
 import { API_URL } from './configs';
 const WallPaper = styled('div')({
@@ -92,11 +91,7 @@ export default function MusicPlayerSlider({ deviceName, mediaStatus }) {
           configs: {
             loop: !loop
           }
-        }, {
-        headers: {
-          'Authorization': `Bearer ${getCookieValue('CF_Authorization')}`
-        }
-      });
+        });
       console.log('Response:', response.data);
     } catch (error) {
       console.error(error);
@@ -111,11 +106,7 @@ export default function MusicPlayerSlider({ deviceName, mediaStatus }) {
           configs: {
             volume: newValue
           }
-        }, {
-        headers: {
-          'Authorization': `Bearer ${getCookieValue('CF_Authorization')}`
-        }
-      });
+        });
       console.log('Response:', response.data);
     } catch (error) {
       console.error(error);
