@@ -10,7 +10,7 @@ import jwt
 import jwt.algorithms
 from werkzeug.utils import secure_filename
 import ssl
-from app.smartnest.api import *
+from smartnest.api import *
 app = Flask(__name__)
 
 CORS(app)
