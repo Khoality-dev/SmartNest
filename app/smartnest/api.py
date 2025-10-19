@@ -6,9 +6,11 @@ import time
 import pyaudio
 import pydub
 import threading
+import hashlib
 
 current_path = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/")
-DATA_FOLDER = os.path.join(current_path, 'data').replace("\\", "/")
+# Data folder should be in app/data, not app/smartnest/data
+DATA_FOLDER = os.path.join(os.path.dirname(current_path), 'data').replace("\\", "/")
 UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads').replace("\\", "/")
 CONFIG_FILE = os.path.join(DATA_FOLDER, 'config.json').replace("\\", "/")
 p = pyaudio.PyAudio()
@@ -196,9 +198,10 @@ def save_config():
                     "display_name": devices[device_name].get("display_name", device_name)
                 }
 
-        # Get current device hash
+        # Get current device hash using SHA256
         available_device_names = [name for name, dev in devices.items() if dev["available"]]
-        current_device_hash = str(hash(tuple(sorted(available_device_names))))
+        device_list_str = "|".join(sorted(available_device_names))
+        current_device_hash = hashlib.sha256(device_list_str.encode()).hexdigest()
 
         config = {
             "hash": current_device_hash,
@@ -217,8 +220,9 @@ def initialize_devices():
         if device_info['maxOutputChannels'] != 0:
             avaliable_devices[device_info['name']] = {'device_name':device_info['name'], 'device_id': i, **device_info}
 
-    # Create hash of current device list (sorted device names)
-    current_device_hash = str(hash(tuple(sorted(avaliable_devices.keys()))))
+    # Create hash of current device list (sorted device names) using SHA256
+    device_list_str = "|".join(sorted(avaliable_devices.keys()))
+    current_device_hash = hashlib.sha256(device_list_str.encode()).hexdigest()
 
     # Get previous hash and device_infos from config
     previous_device_hash = config.get("hash")
