@@ -16,7 +16,7 @@ function App() {
   }
 
   const fetchDevices = async () => {
-
+    console.log('Fetching devices...' + API_URL);
     try {         // File field
       const response = await axios.get(API_URL + '/list-devices');
       console.log('Response:', response.data.devices);
