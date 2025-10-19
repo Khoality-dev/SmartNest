@@ -10,7 +10,4 @@ WORKDIR /app
 ADD ./requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-ADD . /app/
-RUN mkdir -p /app/smartnest/data
-
 CMD ["python", "app.py"]
