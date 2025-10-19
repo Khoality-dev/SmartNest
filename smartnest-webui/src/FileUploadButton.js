@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Button, Typography } from '@mui/material';
 import axios from 'axios';
 import { API_URL } from './configs';
-import { getCookieValue } from './utils';
 
 export const playFile = async (deviceName, selectedFileName) => {
     try {
@@ -11,10 +10,8 @@ export const playFile = async (deviceName, selectedFileName) => {
         device_name: deviceName
       };
       console.log('device_name', deviceName);
-      const cfToken = getCookieValue('CF_Authorization');
       const response = await axios.post(API_URL + '/play', body, {
         headers: {
-          'Authorization': `Bearer ${cfToken}`,
           'Content-Type': 'application/json'
         }
       });
@@ -29,10 +26,8 @@ const FileUploadButton = ({deviceName}) => {
         try {
           const formData = new FormData();
           formData.append('file', selectedFile);
-          const cfToken = getCookieValue('CF_Authorization');
           const response = await axios.post(API_URL + '/upload', formData, {
             headers: {
-              'Authorization': `Bearer ${cfToken}`,
               'Content-Type': 'multipart/form-data'
             },
             onUploadProgress: (progressEvent) => {

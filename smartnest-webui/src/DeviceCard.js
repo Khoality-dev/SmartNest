@@ -9,22 +9,15 @@ import Box from '@mui/material/Box';
 import SpeakerIcon from '@mui/icons-material/Speaker';
 import { styled } from '@mui/material/styles';
 import { API_URL } from './configs';
-import { getCookieValue } from './utils';
 import Button from '@mui/material/Button';
 
 function DeviceCard({ deviceName, mediaStatus, setMediaSelectDialogOpen }) {
   const onDeleteButtonClick = async (deviceName) => {
     try {
-      const cfToken = getCookieValue('CF_Authorization');
       const response = await axios.post(API_URL + '/config-device', {
         device_name: deviceName,
         configs: { stop: true }
-      }, {
-        headers: {
-          'Authorization': `Bearer ${cfToken}`
-        }
-      }
-      );
+      });
       console.log('Response:', response.data);
     } catch (error) {
       console.error(error);

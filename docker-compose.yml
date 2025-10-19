@@ -1,12 +1,23 @@
 services:
+  nginx:
+    container_name: smartnest-nginx
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+      - webui
+    restart: unless-stopped
+
   backend:
     container_name: smartnest-backend
     build:
       context: ./app/
       dockerfile: Dockerfile
-      target: dev
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
     devices:
       - "/dev/snd:/dev/snd"  # Pass all sound devices
     env_file:
@@ -20,21 +31,21 @@ services:
       - /etc/machine-id:/etc/machine-id:ro  # Needed for PulseAudio
       - /var/lib/dbus:/var/lib/dbus:ro
     restart: unless-stopped
+    tty: true
+
   webui:
     container_name: smartnest-webui
     build:
       context: ./smartnest-webui/
       dockerfile: Dockerfile
-      target: dev
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     volumes:
       - ./smartnest-webui/src:/app/src
       - ./smartnest-webui/public:/app/public
     env_file:
       - .env
     environment:
-      - NODE_ENV=development
       - WATCHPACK_POLLING=true
     restart: unless-stopped
 

@@ -12,7 +12,6 @@ import {
 import axios from 'axios';
 import AudioFileIcon from '@mui/icons-material/AudioFile';
 import { API_URL } from './configs';
-import { getCookieValue } from './utils';
 import FileUploadButton from './FileUploadButton';
 import { playFile } from './FileUploadButton';
 
@@ -26,12 +25,7 @@ const MediaSelectDialog = ({ deviceName, open, onClose }) => {
 
   const fetchMedia = async () => {
     try {
-      const cfToken = getCookieValue('CF_Authorization');
-      const response = await axios.get(API_URL + '/media', {
-        headers: {
-          'Authorization': `Bearer ${cfToken}`
-        }
-      });
+      const response = await axios.get(API_URL + '/media');
       console.log('Response:', response.data.media);
       setMediaList(response.data.media);
 
