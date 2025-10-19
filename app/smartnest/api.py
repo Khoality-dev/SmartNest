@@ -51,6 +51,13 @@ def config_device(device_name, configs):
             device["looping"] = configs['loop']
         if 'volume' in configs:
             device["volume"] = min(max(configs['volume'],0), 100)
+        if 'pause' in configs:
+            if device["playing_thread"] is not None:
+                device["is_paused"] = configs['pause']
+                if configs['pause']:
+                    device['status'] = "Paused"
+                else:
+                    device['status'] = "Playing"
         if 'stop' in configs:
             if device["playing_thread"] is not None:
                 device["is_playing"] = False
@@ -87,13 +94,18 @@ def play_audio(device_name, file_path):
             amplified_audio_data = audio_data
             raw_data = amplified_audio_data.raw_data
             while True:
-                index = 0
-                
+                index = device.get('position_index', 0)
+
                 while index < len(raw_data):
                     if not device["is_playing"]:  # Check the stop flag
                         print("Stopping playback...")
                         break
-                    
+
+                    # Check if paused
+                    if device.get("is_paused", False):
+                        time.sleep(0.1)  # Sleep briefly while paused
+                        continue
+
                     if device['volume'] != current_volume:
                         volume_db = volume_db = -60 * (1 - device['volume'] /100)
                         amplified_audio_data = audio_data.apply_gain(volume_db)
@@ -102,7 +114,7 @@ def play_audio(device_name, file_path):
 
                     # Write a chunk of audio data to the stream
                     chunk = raw_data[index:index + chunk_size]
-                    # apply new volume 
+                    # apply new volume
                     stream.write(chunk)
                     index += chunk_size
                     device['position'] = int((index / len(raw_data)) * device['duration'])
@@ -133,7 +145,9 @@ def play_audio(device_name, file_path):
     device["duration"] = int(len(audio_data) / 1000)
     device['status'] = "Playing"
     device["is_playing"] = True
+    device["is_paused"] = False
     device['position'] = 0
+    device['position_index'] = 0
     device["playing_thread"] = threading.Thread(target=play_audio_thread, args=(device, file_name, audio_data, device["sample_rate"], audio_segment.sample_width, audio_segment.channels, device["device_id"]))
     device["playing_thread"].start() 
 
@@ -184,10 +198,12 @@ def update_device_infos():
                     "channels": int(avaliable_devices[device_name]["maxOutputChannels"]),
                     "playing_thread": None,
                     "is_playing": False,
+                    "is_paused": False,
                     "status": "Idle",
                     "looping": True,
-                    "duration": 0, 
+                    "duration": 0,
                     "position": 0,
+                    "position_index": 0,
                     "volume": 100,
                     "file_name": "",
                     "available": True,
