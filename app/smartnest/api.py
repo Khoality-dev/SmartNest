@@ -34,6 +34,7 @@ def list_all_devices():
         #if filtering_name in device['device_name']:
         available_devices.append({
             "device_name": device["device_name"],
+            "display_name": device.get("display_name", device["device_name"]),
             "status": device["status"],
             "duration": device["duration"],
             "position": device["position"],
@@ -51,6 +52,8 @@ def config_device(device_name, configs):
             device["looping"] = configs['loop']
         if 'volume' in configs:
             device["volume"] = min(max(configs['volume'],0), 100)
+        if 'display_name' in configs:
+            device["display_name"] = configs['display_name']
         if 'pause' in configs:
             if device["playing_thread"] is not None:
                 device["is_paused"] = configs['pause']
@@ -212,15 +215,18 @@ def update_device_infos():
                     "position_index": 0,
                     "volume": 100,
                     "file_name": "",
+                    "display_name": device_name,
                     "available": True,
                     **avaliable_devices[device_name]
                 }
                 devices[device_name] = new_device
                 print(f"New device found: {device_name}")
-                
+
                 if device_name in config:
                     devices[device_name]["volume"] = config[device_name]["volume"]
                     devices[device_name]["looping"] = config[device_name]["looping"]
+                    if "display_name" in config[device_name]:
+                        devices[device_name]["display_name"] = config[device_name]["display_name"]
                     if "file_name" in config[device_name] and config[device_name]['file_name'] != "" and os.path.exists(os.path.join(UPLOAD_FOLDER, config[device_name]["file_name"])):
                         play_audio(device_name, os.path.join(UPLOAD_FOLDER, config[device_name]["file_name"]))
 
@@ -230,7 +236,8 @@ def update_device_infos():
                 config[device_name] = {
                     "volume": devices[device_name]["volume"],
                     "looping": devices[device_name]["looping"],
-                    "file_name": devices[device_name]["file_name"]
+                    "file_name": devices[device_name]["file_name"],
+                    "display_name": devices[device_name].get("display_name", device_name)
                 }
             json.dump(config, f)
         time.sleep(5)

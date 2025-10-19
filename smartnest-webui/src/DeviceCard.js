@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useState } from 'react';
 import {
   Stack,
   Typography,
@@ -7,7 +8,12 @@ import {
   Paper,
   Avatar,
   IconButton,
-  Tooltip
+  Tooltip,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import MusicPlayerSlider from './MusicPlayer';
 import { API_URL } from './configs';
@@ -16,8 +22,12 @@ import StopCircleIcon from '@mui/icons-material/StopCircle';
 import UsbIcon from '@mui/icons-material/Usb';
 import HeadphonesIcon from '@mui/icons-material/Headphones';
 import SpeakerIcon from '@mui/icons-material/Speaker';
+import EditIcon from '@mui/icons-material/Edit';
 
-function DeviceCard({ deviceName, mediaStatus, setMediaSelectDialogOpen }) {
+function DeviceCard({ deviceName, displayName: initialDisplayName, mediaStatus, setMediaSelectDialogOpen }) {
+  const [displayName, setDisplayName] = useState(initialDisplayName || deviceName);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [tempDisplayName, setTempDisplayName] = useState(displayName);
   const onStopButtonClick = async (deviceName) => {
     try {
       await axios.post(API_URL + '/config-device', {
@@ -27,6 +37,29 @@ function DeviceCard({ deviceName, mediaStatus, setMediaSelectDialogOpen }) {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleEditClick = () => {
+    setTempDisplayName(displayName);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveDisplayName = async () => {
+    try {
+      await axios.post(API_URL + '/config-device', {
+        device_name: deviceName,
+        configs: { display_name: tempDisplayName }
+      });
+      setDisplayName(tempDisplayName);
+      setEditDialogOpen(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setTempDisplayName(displayName);
+    setEditDialogOpen(false);
   };
 
   // Determine device type and icon
@@ -85,9 +118,29 @@ function DeviceCard({ deviceName, mediaStatus, setMediaSelectDialogOpen }) {
           <Typography variant="overline" sx={{ opacity: 0.9, fontSize: '0.7rem' }}>
             Audio Device
           </Typography>
-          <Typography variant="h6" fontWeight={600} sx={{ lineHeight: 1.2 }}>
-            {deviceName}
-          </Typography>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography variant="h6" fontWeight={600} sx={{ lineHeight: 1.2 }}>
+              {displayName}
+            </Typography>
+            <Tooltip title="Edit device name">
+              <IconButton
+                size="small"
+                onClick={handleEditClick}
+                sx={{
+                  color: 'white',
+                  opacity: 0.8,
+                  '&:hover': { opacity: 1 }
+                }}
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+          {displayName !== deviceName && (
+            <Typography variant="caption" sx={{ opacity: 0.7, fontSize: '0.65rem' }}>
+              {deviceName}
+            </Typography>
+          )}
         </Box>
         <Stack direction="row" spacing={1}>
           <Tooltip title="Choose Music">
@@ -128,6 +181,43 @@ function DeviceCard({ deviceName, mediaStatus, setMediaSelectDialogOpen }) {
       <Box sx={{ p: 3 }}>
         <MusicPlayerSlider deviceName={deviceName} mediaStatus={mediaStatus} />
       </Box>
+
+      {/* Edit Display Name Dialog */}
+      <Dialog open={editDialogOpen} onClose={handleCancelEdit} maxWidth="sm" fullWidth>
+        <DialogTitle>Edit Device Name</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2 }}>
+            <TextField
+              fullWidth
+              label="Display Name"
+              value={tempDisplayName}
+              onChange={(e) => setTempDisplayName(e.target.value)}
+              helperText="This is just a label - the actual device name remains unchanged"
+              autoFocus
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleSaveDisplayName();
+                }
+              }}
+            />
+            <Box sx={{ mt: 2, p: 2, bgcolor: 'action.hover', borderRadius: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                Original device name: <strong>{deviceName}</strong>
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelEdit}>Cancel</Button>
+          <Button
+            onClick={handleSaveDisplayName}
+            variant="contained"
+            disabled={!tempDisplayName.trim()}
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }

@@ -153,6 +153,7 @@ function App() {
                 key={index}
                 deviceIndex={index}
                 deviceName={device.device_name}
+                displayName={device.display_name}
                 mediaStatus={device.mediaStatus}
                 setMediaSelectDialogOpen={setMediaSelectDialogOpenHandler}
               />
