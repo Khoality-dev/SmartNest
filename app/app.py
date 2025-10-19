@@ -15,7 +15,22 @@ app = Flask(__name__)
 
 CORS(app)
 
-ALLOWED_EXTENSIONS = {'mp3', 'wav'}
+ALLOWED_EXTENSIONS = {
+    'mp3',   # MPEG Audio
+    'wav',   # Waveform Audio
+    'flac',  # Free Lossless Audio Codec
+    'ogg',   # Ogg Vorbis
+    'oga',   # Ogg Audio
+    'm4a',   # MPEG-4 Audio
+    'aac',   # Advanced Audio Coding
+    'wma',   # Windows Media Audio
+    'opus',  # Opus Audio
+    'webm',  # WebM Audio
+    'aiff',  # Audio Interchange File Format
+    'aif',   # Audio Interchange File Format
+    'ape',   # Monkey's Audio
+    'alac',  # Apple Lossless Audio Codec
+}
 current_path = os.path.dirname(os.path.realpath(__file__)).replace("\\", "/")
 DATA_FOLDER = os.path.join(current_path, 'data').replace("\\", "/")
 UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads').replace("\\", "/")
@@ -89,3 +104,4 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='SmartNest API')
     args = parser.parse_args()
     app.run(host='0.0.0.0', port=5000)
+

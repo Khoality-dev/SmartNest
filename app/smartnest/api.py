@@ -75,7 +75,13 @@ def play_audio(device_name, file_path):
         return None
 
     device = devices[device_name]
-    audio_segment = pydub.AudioSegment.from_file(file_path, format="mp3")
+    # Auto-detect audio format from file extension
+    file_extension = file_path.split('.')[-1].lower()
+    try:
+        audio_segment = pydub.AudioSegment.from_file(file_path, format=file_extension)
+    except:
+        # If format detection fails, try without specifying format (pydub will auto-detect)
+        audio_segment = pydub.AudioSegment.from_file(file_path)
     audio_data = audio_segment.set_frame_rate(device["sample_rate"])
     
     def play_audio_thread(device, file_name, audio_data, sample_rate, sample_width, channels, device_index):

@@ -112,9 +112,18 @@ const FileUploadButton = ({ deviceName, onUploadComplete }) => {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
 
-      // Check file type
-      if (!file.name.toLowerCase().endsWith('.mp3')) {
-        setErrorMessage('Please upload an MP3 file');
+      // Check file type - allow common audio formats
+      const allowedExtensions = [
+        '.mp3', '.wav', '.flac', '.ogg', '.oga', '.m4a',
+        '.aac', '.wma', '.opus', '.webm', '.aiff', '.aif',
+        '.ape', '.alac'
+      ];
+      const fileName = file.name.toLowerCase();
+      const isValidAudio = allowedExtensions.some(ext => fileName.endsWith(ext)) ||
+                          file.type.startsWith('audio/');
+
+      if (!isValidAudio) {
+        setErrorMessage('Please upload a valid audio file');
         setUploadStatus('error');
         setSnackbarOpen(true);
         return;
@@ -134,7 +143,7 @@ const FileUploadButton = ({ deviceName, onUploadComplete }) => {
   return (
     <>
       <input
-        accept=".mp3"
+        accept=".mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.wma,.opus,.webm,.aiff,.aif,.ape,.alac,audio/*"
         style={{ display: 'none' }}
         id={`file-upload-${deviceName}`}
         type="file"
@@ -221,7 +230,7 @@ const FileUploadButton = ({ deviceName, onUploadComplete }) => {
                 </Button>
               </label>
               <Typography variant="caption" color="text.disabled">
-                Supported format: MP3
+                Supported formats: MP3, WAV, FLAC, OGG, M4A, AAC, WMA, OPUS, and more
               </Typography>
             </>
           )}
