@@ -12,7 +12,8 @@ from werkzeug.utils import secure_filename
 import ssl
 from smartnest.main import *
 app = Flask(__name__)
-CORS(app, supports_credentials=True)
+
+CORS(app)
 
 # In-memory "database" for demonstration
 tasks = []
@@ -152,6 +153,5 @@ def config_devices():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='SmartNest API')
-    parser.add_argument('--debug', action='store_true', help='Debug mode')
     args = parser.parse_args()
-    app.run(host='0.0.0.0', port=5000, debug=args.debug, use_reloader=False)
+    app.run(host='0.0.0.0', port=5000)
