@@ -20,8 +20,6 @@ services:
       - "5000"
     devices:
       - "/dev/snd:/dev/snd"  # Pass all sound devices
-    env_file:
-      - .env
     environment:
       - PULSE_SERVER=unix:/tmp/pulseaudio.socket
       - FLASK_ENV=development
@@ -43,8 +41,6 @@ services:
     volumes:
       - ./smartnest-webui/src:/app/src
       - ./smartnest-webui/public:/app/public
-    env_file:
-      - .env
     environment:
       - WATCHPACK_POLLING=true
     restart: unless-stopped

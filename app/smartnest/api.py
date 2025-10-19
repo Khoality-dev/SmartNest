@@ -19,12 +19,14 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 devices = {}
 config = {}
+config_reset_flag = False
 logger = Logger("SmartNest")
 if os.path.exists(CONFIG_FILE):
     with open(CONFIG_FILE, 'r') as f:
         config = json.load(f)
 
 def list_all_devices():
+    global config_reset_flag
     available_devices = []
     cloned_devices = devices.copy()
     for device_name in cloned_devices:
@@ -44,16 +46,29 @@ def list_all_devices():
         })
     return available_devices
 
+def get_config_status():
+    global config_reset_flag
+    status = {"config_reset": config_reset_flag}
+    # Reset the flag after being read
+    if config_reset_flag:
+        config_reset_flag = False
+    return status
+
 def config_device(device_name, configs):
     global devices
     if device_name in devices:
         device = devices[device_name]
+        config_changed = False
+
         if 'loop' in configs:
             device["looping"] = configs['loop']
+            config_changed = True
         if 'volume' in configs:
             device["volume"] = min(max(configs['volume'],0), 100)
+            config_changed = True
         if 'display_name' in configs:
             device["display_name"] = configs['display_name']
+            config_changed = True
         if 'pause' in configs:
             if device["playing_thread"] is not None:
                 device["is_paused"] = configs['pause']
@@ -70,6 +85,11 @@ def config_device(device_name, configs):
                 device['position'] = 0
                 device['duration'] = 0
                 device['file_name'] = ""
+                config_changed = True
+
+        # Save config if any persistent settings changed
+        if config_changed:
+            save_config()
 
 
 def play_audio(device_name, file_path):
@@ -158,90 +178,98 @@ def play_audio(device_name, file_path):
     device['position'] = 0
     device['position_index'] = 0
     device["playing_thread"] = threading.Thread(target=play_audio_thread, args=(device, file_name, audio_data, device["sample_rate"], audio_segment.sample_width, audio_segment.channels, device["device_id"]))
-    device["playing_thread"].start() 
+    device["playing_thread"].start()
 
-def ping_audio_device(device):
-    global devices
-    # play a silent audio to check if the device is available
-    try:
-        audio_segment = pydub.AudioSegment.silent(duration=1000)
-        audio_data = audio_segment.raw_data
-        stream = p.open(
-            format=pyaudio.paInt16,
-            channels=device["channels"],
-            rate=device["sample_rate"],
-            output=True,
-            output_device_index=device["device_id"]
-        )
-        stream.write(audio_data)
-        stream.stop_stream()
-        stream.close()
-    except Exception as e:
-        print("Error:", e)
-        return False
+    # Save config when playing new file
+    save_config() 
 
-    return True
-
-def update_device_infos():
-    global devices, config, p
-    while True:
-        avaliable_devices = {}
-
-        for i in range(p.get_device_count()):
-            device_info = p.get_device_info_by_index(i)
-            if device_info['maxOutputChannels'] != 0:
-                avaliable_devices[device_info['name']] = {'device_name':device_info['name'], 'device_id': i, **device_info}
-
-        for device_name in avaliable_devices:
-            
-            reconnected = False
-            if device_name in devices and not devices[device_name]['available']:
-                ping_result = ping_audio_device(devices[device_name])
-                if ping_result and devices[device_name]["available"] == False:
-                    reconnected = True
-                devices[device_name]["available"] = ping_result
-
-            if device_name not in devices or reconnected:
-                new_device = {
-                    "sample_rate": int(avaliable_devices[device_name]["defaultSampleRate"]),
-                    "channels": int(avaliable_devices[device_name]["maxOutputChannels"]),
-                    "playing_thread": None,
-                    "is_playing": False,
-                    "is_paused": False,
-                    "status": "Idle",
-                    "looping": True,
-                    "duration": 0,
-                    "position": 0,
-                    "position_index": 0,
-                    "volume": 100,
-                    "file_name": "",
-                    "display_name": device_name,
-                    "available": True,
-                    **avaliable_devices[device_name]
-                }
-                devices[device_name] = new_device
-                print(f"New device found: {device_name}")
-
-                if device_name in config:
-                    devices[device_name]["volume"] = config[device_name]["volume"]
-                    devices[device_name]["looping"] = config[device_name]["looping"]
-                    if "display_name" in config[device_name]:
-                        devices[device_name]["display_name"] = config[device_name]["display_name"]
-                    if "file_name" in config[device_name] and config[device_name]['file_name'] != "" and os.path.exists(os.path.join(UPLOAD_FOLDER, config[device_name]["file_name"])):
-                        play_audio(device_name, os.path.join(UPLOAD_FOLDER, config[device_name]["file_name"]))
-
-        with open(CONFIG_FILE, 'w') as f:
-            config = {}
-            for device_name in devices:
-                config[device_name] = {
+def save_config():
+    global devices, config
+    with open(CONFIG_FILE, 'w') as f:
+        device_infos_to_save = {}
+        for device_name in devices:
+            if devices[device_name]["available"]:
+                device_infos_to_save[device_name] = {
                     "volume": devices[device_name]["volume"],
                     "looping": devices[device_name]["looping"],
                     "file_name": devices[device_name]["file_name"],
                     "display_name": devices[device_name].get("display_name", device_name)
                 }
-            json.dump(config, f)
-        time.sleep(5)
 
-device_scan_thread = threading.Thread(target=update_device_infos)
-device_scan_thread.daemon = True
-device_scan_thread.start()
+        # Get current device hash
+        available_device_names = [name for name, dev in devices.items() if dev["available"]]
+        current_device_hash = str(hash(tuple(sorted(available_device_names))))
+
+        config = {
+            "hash": current_device_hash,
+            "device_infos": device_infos_to_save if device_infos_to_save else None
+        }
+        json.dump(config, f, indent=2)
+
+def initialize_devices():
+    global devices, config, p, config_reset_flag
+
+    avaliable_devices = {}
+
+    # Get current available devices from system
+    for i in range(p.get_device_count()):
+        device_info = p.get_device_info_by_index(i)
+        if device_info['maxOutputChannels'] != 0:
+            avaliable_devices[device_info['name']] = {'device_name':device_info['name'], 'device_id': i, **device_info}
+
+    # Create hash of current device list (sorted device names)
+    current_device_hash = str(hash(tuple(sorted(avaliable_devices.keys()))))
+
+    # Get previous hash and device_infos from config
+    previous_device_hash = config.get("hash")
+    device_infos = config.get("device_infos")
+
+    # Check if device list has changed
+    if previous_device_hash is not None and current_device_hash != previous_device_hash:
+        print(f"Device list changed! Resetting config...")
+        # Set flag to notify frontend
+        config_reset_flag = True
+        # Clear device_infos
+        device_infos = None
+    elif previous_device_hash is None:
+        # First run
+        print(f"First run, initializing config...")
+        device_infos = None
+
+    # Initialize devices
+    for device_name in avaliable_devices:
+        new_device = {
+            "sample_rate": int(avaliable_devices[device_name]["defaultSampleRate"]),
+            "channels": int(avaliable_devices[device_name]["maxOutputChannels"]),
+            "playing_thread": None,
+            "is_playing": False,
+            "is_paused": False,
+            "status": "Idle",
+            "looping": True,
+            "duration": 0,
+            "position": 0,
+            "position_index": 0,
+            "volume": 100,
+            "file_name": "",
+            "display_name": device_name,
+            "available": True,
+            **avaliable_devices[device_name]
+        }
+        devices[device_name] = new_device
+        print(f"Device initialized: {device_name}")
+
+        # Load config if exists
+        if device_infos and device_name in device_infos:
+            devices[device_name]["volume"] = device_infos[device_name].get("volume", 100)
+            devices[device_name]["looping"] = device_infos[device_name].get("looping", True)
+            if "display_name" in device_infos[device_name]:
+                devices[device_name]["display_name"] = device_infos[device_name]["display_name"]
+            if "file_name" in device_infos[device_name] and device_infos[device_name]['file_name'] != "" and os.path.exists(os.path.join(UPLOAD_FOLDER, device_infos[device_name]["file_name"])):
+                play_audio(device_name, os.path.join(UPLOAD_FOLDER, device_infos[device_name]["file_name"]))
+
+    # Save initial config
+    save_config()
+    print(f"Initialized {len(devices)} devices")
+
+# Initialize devices on startup
+initialize_devices()

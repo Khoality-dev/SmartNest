@@ -10,12 +10,19 @@ import {
   Box,
   Paper,
   Chip,
-  CircularProgress
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Alert
 } from '@mui/material';
 import { API_URL } from './configs';
 import MediaSelectDialogOpen from './MediaSelectDialog';
 import HeadphonesIcon from '@mui/icons-material/Headphones';
 import DevicesIcon from '@mui/icons-material/Devices';
+import WarningIcon from '@mui/icons-material/Warning';
 
 function App() {
   const [deviceList, setDeviceList] = useState([]);
@@ -23,10 +30,22 @@ function App() {
   const [selectedDevice, setSelectedDevice] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [configResetDialogOpen, setConfigResetDialogOpen] = useState(false);
 
   const setMediaSelectDialogOpenHandler = (deviceName) => {
     setMediaSelectDialogOpen(true);
     setSelectedDevice(deviceName);
+  };
+
+  const checkConfigStatus = async () => {
+    try {
+      const response = await axios.get(API_URL + '/config-status');
+      if (response.data.config_reset) {
+        setConfigResetDialogOpen(true);
+      }
+    } catch (error) {
+      console.error('Failed to check config status:', error);
+    }
   };
 
   const fetchDevices = async () => {
@@ -59,8 +78,10 @@ function App() {
 
   useEffect(() => {
     fetchDevices();
+    checkConfigStatus();
     const intervalId = setInterval(() => {
       fetchDevices();
+      checkConfigStatus();
     }, 1000);
     return () => clearInterval(intervalId);
   }, []);
@@ -167,6 +188,58 @@ function App() {
         open={mediaSelectDialogOpen}
         onClose={() => setMediaSelectDialogOpen(false)}
       />
+
+      {/* Config Reset Warning Dialog */}
+      <Dialog
+        open={configResetDialogOpen}
+        onClose={() => setConfigResetDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={1}>
+            <WarningIcon color="warning" sx={{ fontSize: 32 }} />
+            <Typography variant="h6">Device List Changed</Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Configuration has been reset due to device list changes
+          </Alert>
+          <Typography variant="body1" paragraph>
+            The system detected that your audio devices have changed (devices were added or removed).
+          </Typography>
+          <Typography variant="body1" paragraph>
+            All device settings have been reset to default values:
+          </Typography>
+          <Box component="ul" sx={{ pl: 2 }}>
+            <li>
+              <Typography variant="body2">Display names reset to device names</Typography>
+            </li>
+            <li>
+              <Typography variant="body2">Volume reset to 100%</Typography>
+            </li>
+            <li>
+              <Typography variant="body2">Loop enabled by default</Typography>
+            </li>
+            <li>
+              <Typography variant="body2">No media files selected</Typography>
+            </li>
+          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            You can reconfigure your devices using the controls on each device card.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setConfigResetDialogOpen(false)}
+            variant="contained"
+            color="primary"
+          >
+            Got it
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

@@ -100,6 +100,10 @@ def config_devices():
     config_device(device_name, configs)
     return {"success": True}
 
+@app.route('/config-status')
+def config_status():
+    return get_config_status()
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='SmartNest API')
     args = parser.parse_args()
